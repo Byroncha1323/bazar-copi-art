@@ -830,6 +830,20 @@ ul {
   transform: translateX(4px);
 }
 
+.faq-chip-order {
+  background: linear-gradient(135deg, var(--brand-plum), var(--brand-plum-dark));
+  color: #ffffff;
+  border-color: var(--brand-plum);
+  border-left: 4px solid var(--accent-gold);
+}
+
+.faq-chip-order:hover {
+  background: var(--brand-plum-dark);
+  color: #ffffff;
+  border-color: var(--accent-gold);
+  border-left-color: var(--accent-gold);
+}
+
 .chatbot-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-soft);

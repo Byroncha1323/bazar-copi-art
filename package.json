@@ -1,0 +1,13 @@
+{
+  "name": "bazar-copi-art",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sitio web oficial y Webhook de WhatsApp Cloud API para Bazar Copi Art",
+  "dependencies": {
+    "@vercel/functions": "^3.10.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

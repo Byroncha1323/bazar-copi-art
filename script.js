@@ -320,10 +320,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   faqChips.forEach((chip) => {
+    if (chip.id === "startStepOrderBtn") return;
     chip.addEventListener("click", () => {
       const key = chip.dataset.faq;
       const item = FAQ_DATA[key];
       if (!item) return;
+
+      stepBotActive = false;
+      stepSession = null;
 
       appendChatMessage("user", item.question, false);
       setTimeout(() => {
@@ -332,14 +336,84 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  /* 8. Modo Bot Paso a Paso conectado a /api/whatsapp */
+  const startStepOrderBtn = document.getElementById("startStepOrderBtn");
+  let stepBotActive = false;
+  let stepSession = null;
+  const webSessionId = "web-" + Math.random().toString(36).slice(2, 10);
+
+  function formatWhatsAppMarkdownToHTML(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\*([^*]+)\*/g, "<strong>$1</strong>")
+      .replace(/_([^_]+)_/g, "<em>$1</em>")
+      .replace(/\n/g, "<br>");
+  }
+
+  async function sendToWhatsAppWebhookSimulator(userText) {
+    try {
+      const res = await fetch("/api/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "simulate",
+          sessionId: webSessionId,
+          text: userText,
+          session: stepSession,
+        }),
+      });
+      if (!res.ok) throw new Error("Webhook error");
+      const data = await res.json();
+      stepSession = data.session || null;
+      const isCompleted = stepSession && stepSession.step === "COMPLETED";
+      if (isCompleted) {
+        stepBotActive = false;
+      }
+      const htmlReply = formatWhatsAppMarkdownToHTML(data.reply || "");
+      appendChatMessage("bot", htmlReply, isCompleted);
+    } catch {
+      appendChatMessage(
+        "bot",
+        "No se pudo conectar con el servidor de pedidos en este momento. Puedes contactarnos directamente por WhatsApp.",
+        true
+      );
+    }
+  }
+
+  if (startStepOrderBtn) {
+    startStepOrderBtn.addEventListener("click", async () => {
+      stepBotActive = true;
+      stepSession = null;
+      appendChatMessage("user", "Quiero hacer un pedido paso a paso", false);
+      await sendToWhatsAppWebhookSimulator("hola");
+      if (chatbotInput) chatbotInput.focus();
+    });
+  }
+
   if (chatbotForm && chatbotInput) {
-    chatbotForm.addEventListener("submit", (e) => {
+    chatbotForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const userQuestion = chatbotInput.value.trim();
       if (!userQuestion) return;
 
       appendChatMessage("user", userQuestion, false);
       chatbotInput.value = "";
+
+      const lower = userQuestion.toLowerCase();
+      if (
+        stepBotActive ||
+        lower === "hola" ||
+        lower === "menu" ||
+        lower === "menú" ||
+        lower === "pedido" ||
+        lower === "comprar"
+      ) {
+        stepBotActive = true;
+        await sendToWhatsAppWebhookSimulator(userQuestion);
+        return;
+      }
 
       const answerHTML = matchFreeTextQuestion(userQuestion);
       setTimeout(() => {
@@ -350,11 +424,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (chatbotReset && chatbotMessages) {
     chatbotReset.addEventListener("click", () => {
+      stepBotActive = false;
+      stepSession = null;
       chatbotMessages.innerHTML = `
         <div class="chat-msg bot">
           <div class="chat-bubble">
             ¡Hola! 👋 Soy el asistente virtual de <strong>Bazar Copi Art</strong>.
-            Selecciona una pregunta frecuente a la izquierda o escribe tu duda abajo y con gusto te ayudaré.
+            Selecciona <strong>"Hacer Pedido Paso a Paso"</strong> o una pregunta frecuente a la izquierda, o escribe <strong>HOLA</strong> abajo para comenzar.
           </div>
         </div>
       `;
