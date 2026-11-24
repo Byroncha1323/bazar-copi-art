@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazar Copi Art | Papelería, Impresiones y Regalos</title>
+  <meta name="description" content="Bazar Copi Art: fotocopias, impresiones, emplasticado, tarjetas de presentación, artículos escolares, papelería y regalos. Pedidos por encargo vía WhatsApp." />
+
+  <!-- Google Fonts: Cormorant Garamond (elegante) + Plus Jakarta Sans (limpia y legible) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ================= HEADER / NAVBAR ================= -->
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="#top" class="brand" aria-label="Inicio Bazar Copi Art">
+        <img src="assets/logo-copiart.jpg" alt="Logo de Bazar Copi Art" class="brand-logo" />
+        <div class="brand-text">
+          <span class="brand-name">Bazar Copi Art</span>
+          <span class="brand-tagline">Papelería · Impresiones · Regalos</span>
+        </div>
+      </a>
+
+      <nav class="main-nav" id="mainNav" aria-label="Navegación principal">
+        <a href="#nosotros" class="nav-link">Nosotros</a>
+        <a href="#servicios" class="nav-link">Servicios y Precios</a>
+        <a href="#calidad" class="nav-link">Calidad</a>
+        <a href="#preguntas" class="nav-link">Asistente FAQ</a>
+        <a href="#contacto" class="nav-link">Contacto</a>
+        <a
+          href="https://wa.me/message/I5R57DVEH2T7L1"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-whatsapp btn-sm nav-cta"
+        >
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.03 2a9.97 9.97 0 0 0-8.46 15.27L2 22l4.86-1.54A9.97 9.97 0 1 0 12.03 2Zm5.8 14.12c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.13.11-1.82-.11-.42-.13-.96-.31-1.65-.61-2.91-1.26-4.81-4.2-4.96-4.4-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.59-.36.79-.36h.57c.18 0 .43-.07.67.51.24.59.83 2.04.9 2.19.08.15.13.32.02.52-.1.2-.15.32-.3.5-.15.17-.31.38-.44.51-.15.15-.3.31-.13.61.17.3.77 1.27 1.65 2.06 1.14 1.01 2.1 1.33 2.4 1.48.3.15.47.12.65-.08.17-.2.74-.86.94-1.16.2-.29.4-.24.67-.14.27.1 1.73.82 2.03.96.3.15.5.22.57.34.07.12.07.7-.17 1.38Z"/></svg>
+          WhatsApp
+        </a>
+      </nav>
+
+      <button
+        class="menu-toggle"
+        id="menuToggle"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+        aria-controls="mainNav"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Verificando horario...</span>
+          </div>
+
+          <h1>Todo lo que necesitas en papelería, impresiones y regalos, <span>en un mismo lugar.</span></h1>
+
+          <p class="hero-lead">
+            En <strong>Bazar Copi Art</strong> combinamos cercanía, inmediatez y calidad a precios competitivos.
+            Realiza tu pedido por encargo desde la comodidad de tu casa u oficina y retira únicamente cuando esté listo.
+          </p>
+
+          <div class="hero-actions">
+            <a
+              href="https://wa.me/message/I5R57DVEH2T7L1"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-whatsapp btn-lg"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.03 2a9.97 9.97 0 0 0-8.46 15.27L2 22l4.86-1.54A9.97 9.97 0 1 0 12.03 2Zm5.8 14.12c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.13.11-1.82-.11-.42-.13-.96-.31-1.65-.61-2.91-1.26-4.81-4.2-4.96-4.4-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.59-.36.79-.36h.57c.18 0 .43-.07.67.51.24.59.83 2.04.9 2.19.08.15.13.32.02.52-.1.2-.15.32-.3.5-.15.17-.31.38-.44.51-.15.15-.3.31-.13.61.17.3.77 1.27 1.65 2.06 1.14 1.01 2.1 1.33 2.4 1.48.3.15.47.12.65-.08.17-.2.74-.86.94-1.16.2-.29.4-.24.67-.14.27.1 1.73.82 2.03.96.3.15.5.22.57.34.07.12.07.7-.17 1.38Z"/></svg>
+              Pedir por WhatsApp
+            </a>
+            <a href="#servicios" class="btn btn-outline btn-lg">Ver precios y servicios</a>
+          </div>
+
+          <div class="hero-highlights">
+            <div class="highlight-item">
+              <span class="highlight-title">Atención rápida</span>
+              <span class="highlight-desc">Presencial &lt; 5 min · En línea &lt; 10 min</span>
+            </div>
+            <div class="highlight-item">
+              <span class="highlight-title">Pagos ágiles</span>
+              <span class="highlight-desc">SINPE Móvil y Efectivo</span>
+            </div>
+            <div class="highlight-item">
+              <span class="highlight-title">Pedidos por encargo</span>
+              <span class="highlight-desc">Sin filas, retira cuando esté listo</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="logo-showcase">
+            <div class="watercolor-glow"></div>
+            <img src="assets/logo-copiart.jpg" alt="Bazar Copi Art Logo Oficial" class="hero-logo-img" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= NOSOTROS & PROPUESTA DE VALOR ================= -->
+    <section class="section section-tint" id="nosotros">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Nuestra Historia y Propósito</span>
+          <h2>Nacimos para estar cerca de ti</h2>
+          <p>
+            Detectamos que no existía un servicio completo de papelería y copiado a menos de un kilómetro a la redonda.
+            Por eso creamos <strong>Bazar Copi Art</strong>: para facilitar el acceso a artículos escolares, de oficina y detalles especiales sin que tengas que ir lejos.
+          </p>
+        </div>
+
+        <div class="pillars-grid">
+          <article class="pillar-card">
+            <div class="pillar-icon">📍</div>
+            <h3>Cercanía e Inmediatez</h3>
+            <p>Soluciones rápidas para tus urgencias escolares o laborales, tanto en tienda física como por encargo en línea.</p>
+          </article>
+          <article class="pillar-card">
+            <div class="pillar-icon">✨</div>
+            <h3>Calidad Garantizada</h3>
+            <p>Cuidamos cada impresión, copia y artículo personalizado para entregarte exactamente lo que solicitaste.</p>
+          </article>
+          <article class="pillar-card">
+            <div class="pillar-icon">🏷️</div>
+            <h3>Precios Competitivos</h3>
+            <p>Tarifas accesibles y claras desde ₡20, con descuentos especiales para docentes en folletos.</p>
+          </article>
+          <article class="pillar-card">
+            <div class="pillar-icon">🛍️</div>
+            <h3>Todo en un Mismo Lugar</h3>
+            <p>Desde copias de cédula y tarjetas de presentación hasta tazas, peluches y papelería personalizada.</p>
+          </article>
+        </div>
+
+        <!-- Perfiles de clientes -->
+        <div class="audience-block">
+          <h3 class="subsection-title">¿A quiénes acompañamos?</h3>
+          <div class="audience-grid">
+            <div class="audience-card">
+              <span class="audience-tag">Estudiantes</span>
+              <h4>Rapidez y variedad escolar</h4>
+              <p>Fotocopias, impresiones sin errores y útiles escolares a precios accesibles para tu día a día académico.</p>
+            </div>
+            <div class="audience-card">
+              <span class="audience-tag">Profesionales y Docentes</span>
+              <h4>Seriedad y puntualidad</h4>
+              <p>Tarjetas de presentación, folletos con precio especial docente, facturas, volantes y útiles de oficina.</p>
+            </div>
+            <div class="audience-card">
+              <span class="audience-tag">Regalos y Detalles</span>
+              <h4>Asesoría con paciencia</h4>
+              <p>Si buscas un obsequio especial y aún no decides qué llevar, te orientamos sin presiones para que elijas con confianza.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SERVICIOS Y PRECIOS ================= -->
+    <section class="section" id="servicios">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Catálogo Transparente</span>
+          <h2>Servicios y Lista de Precios</h2>
+          <p>Consulta nuestras tarifas en colones (₡). Haz clic en cualquier categoría para filtrar o solicita tu pedido directo por WhatsApp.</p>
+        </div>
+
+        <!-- Filtros por categoría -->
+        <div class="filter-bar" role="tablist" aria-label="Filtrar servicios por categoría">
+          <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">Todos</button>
+          <button class="filter-btn" data-filter="impresion" role="tab" aria-selected="false">Impresiones y Copias</button>
+          <button class="filter-btn" data-filter="negocios" role="tab" aria-selected="false">Documentos y Negocios</button>
+          <button class="filter-btn" data-filter="papeleria" role="tab" aria-selected="false">Papelería y Regalos</button>
+        </div>
+
+        <!-- Tarjetas de servicios -->
+        <div class="services-grid" id="servicesGrid">
+          <!-- Impresiones -->
+          <article class="service-card" data-category="impresion">
+            <div class="service-top">
+              <span class="service-cat">Impresión</span>
+              <h3>Impresiones</h3>
+            </div>
+            <ul class="price-list">
+              <li><span>Blanco y negro</span><strong>₡50</strong></li>
+              <li><span>A color</span><strong>₡100</strong></li>
+            </ul>
+            <p class="service-note">Documentos, tareas, trabajos y archivos enviados por WhatsApp.</p>
+          </article>
+
+          <!-- Copias -->
+          <article class="service-card" data-category="impresion">
+            <div class="service-top">
+              <span class="service-cat">Fotocopiadora</span>
+              <h3>Copias</h3>
+            </div>
+            <ul class="price-list">
+              <li><span>Blanco y negro</span><strong>₡20</strong></li>
+              <li><span>A color</span><strong>₡75</strong></li>
+            </ul>
+            <p class="service-note">Nitidez garantizada y entrega inmediata.</p>
+          </article>
+
+          <!-- Copias de cédula -->
+          <article class="service-card" data-category="impresion">
+            <div class="service-top">
+              <span class="service-cat">Fotocopiadora</span>
+              <h3>Copias de Cédula</h3>
+            </div>
+            <ul class="price-list">
+              <li><span>Blanco y negro</span><strong>₡60</strong></li>
+              <li><span>A color</span><strong>₡180</strong></li>
+            </ul>
+            <p class="service-note">Formato claro y legible para tus trámites.</p>
+          </article>
+
+          <!-- Emplasticado -->
+          <article class="service-card" data-category="negocios">
+            <div class="service-top">
+              <span class="service-cat">Protección</span>
+              <h3>Emplasticado</h3>
+            </div>
+            <ul class="price-list">
+              <li><span>Según tamaño del artículo</span><strong>Desde ₡600</strong></li>
+            </ul>
+            <p class="service-note">Protege carnés, documentos importantes, láminas y fichas.</p>
+          </article>
+
+          <!-- Tarjetas de presentación -->
+          <article class="service-card" data-category="negocios">
+            <div class="service-top">
+              <span class="service-cat">Imagen Profesional</span>
+              <h3>Tarjetas de Presentación</h3>
+            </div>
+            <ul class="price-list">
+              <li><span>Un solo lado</span><strong>₡2.000</strong></li>
+              <li><span>Ambos lados</span><strong>₡2.500</strong></li>
+            </ul>
+            <p class="service-note">Acabado profesional para destacar tu marca o negocio.</p>
+          </article>
+
+          <!-- Facturas y Volantes -->
+          <article class="service-card" data-category="negocios">
+            <div class="service-top">
+              <span class="service-cat">Comercial</span>
+              <h3>Facturas y Volantes</h3>
+            </div>
+            <ul class="price-list">
+              <li><span>Facturas (según diseño)</span><strong>Desde ₡3.000</strong></li>
+              <li><span>Volantes Papel Bond (100 uds)</span><strong>₡5.000</strong></li>
+            </ul>
+            <p class="service-note">Material impreso para impulsar tus ventas y orden comercial.</p>
+          </article>
+
+          <!-- Folletos -->
+          <article class="service-card" data-category="impresion">
+            <div class="service-top">
+              <span class="service-cat">Educación</span>
+              <h3>Folletos</h3>
+            </div>
+            <ul class="price-list">
+              <li><span>Por página</span><strong>₡20</strong></li>
+              <li><span>Docentes</span><strong>Precio especial</strong></li>
+            </ul>
+            <p class="service-note">Ideal para guías de estudio, antologías y material de clase.</p>
+          </article>
+
+          <!-- Artículos de papelería -->
+          <article class="service-card" data-category="papeleria">
+            <div class="service-top">
+              <span class="service-cat">Papelería</span>
+              <h3>Artículos de Papelería</h3>
+            </div>
+            <ul class="price-list">
+              <li><span>Papelería personalizada</span><strong>Desde ₡8.000</strong></li>
+              <li><span>Stickers (50 unidades)</span><strong>₡2.500</strong></li>
+            </ul>
+            <p class="service-note">Útiles escolares, oficina (post-it, libretas) y diseños personalizados.</p>
+          </article>
+
+          <!-- Artículos de regalo -->
+          <article class="service-card service-card-wide" data-category="papeleria">
+            <div class="service-top">
+              <span class="service-cat">Detalles Especiales</span>
+              <h3>Artículos de Regalo</h3>
+            </div>
+            <ul class="price-list price-list-cols">
+              <li><span>Broches pequeños</span><strong>₡600</strong></li>
+              <li><span>Broches grandes</span><strong>₡1.000</strong></li>
+              <li><span>Separadores</span><strong>₡1.500</strong></li>
+              <li><span>Tazas</span><strong>₡1.700</strong></li>
+              <li><span>Peluches</span><strong>Desde ₡2.500</strong></li>
+              <li><span>Bolsos de tela</span><strong>₡3.000</strong></li>
+            </ul>
+            <p class="service-note">Opciones listas para regalar o personalizar según la ocasión.</p>
+          </article>
+        </div>
+
+        <div class="services-cta-banner">
+          <div>
+            <h3>¿Necesitas cotizar o enviar un archivo para imprimir?</h3>
+            <p>Escríbenos directamente por WhatsApp y te atendemos en menos de 10 minutos.</p>
+          </div>
+          <a
+            href="https://wa.me/message/I5R57DVEH2T7L1"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-whatsapp"
+          >
+            Enviar mensaje ahora
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CALIDAD Y COMPROMISO ================= -->
+    <section class="section section-tint" id="calidad">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Excelencia Operativa</span>
+          <h2>Nuestro Compromiso de Servicio</h2>
+          <p>Trabajamos con estándares medibles y un código de servicio claro para que cada visita o pedido en línea sea una excelente experiencia.</p>
+        </div>
+
+        <!-- Tabs de calidad -->
+        <div class="quality-tabs">
+          <button class="q-tab active" data-qtab="indicadores">Indicadores de Calidad</button>
+          <button class="q-tab" data-qtab="momentos">5 Momentos de Verdad</button>
+          <button class="q-tab" data-qtab="codigo">Código de Servicio (8 Normas)</button>
+        </div>
+
+        <!-- Panel 1: Indicadores -->
+        <div class="q-panel active" id="panel-indicadores">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-value">&lt; 5 / 10 min</span>
+              <h4>Tiempo de Primera Respuesta</h4>
+              <p>Menos de 5 minutos en atención presencial y menos de 10 minutos en línea.</p>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value">85%</span>
+              <h4>Satisfacción del Cliente (CSAT)</h4>
+              <p>Meta de calificación buena y excelente en cada experiencia de compra.</p>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value">90%</span>
+              <h4>Resolución al 1er Contacto</h4>
+              <p>Atención completa desde tu primera consulta sin vueltas innecesarias.</p>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value">97%</span>
+              <h4>Entregas a Tiempo</h4>
+              <p>Cumplimos el día, hora y forma acordada desde el inicio de tu pedido.</p>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value">95%</span>
+              <h4>Precisión de Pedidos</h4>
+              <p>Recibes tu producto o impresión exactamente como se te garantizó.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: 5 Momentos de verdad -->
+        <div class="q-panel" id="panel-momentos">
+          <div class="steps-grid">
+            <div class="step-card">
+              <span class="step-num">01</span>
+              <h4>Llegada del cliente</h4>
+              <p>Te damos la bienvenida de forma cordial y con una sonrisa.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">02</span>
+              <h4>Identificar qué necesitas</h4>
+              <p>Consultamos amablemente en qué podemos ayudarte hoy.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">03</span>
+              <h4>Brindar información</h4>
+              <p>Te explicamos precios, opciones y disponibilidad de forma clara y honesta.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">04</span>
+              <h4>Compra y pago ágil</h4>
+              <p>Facilitamos el pago rápido y seguro por medio de SINPE Móvil o efectivo.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">05</span>
+              <h4>Despedida amable</h4>
+              <p>Agradecemos tu preferencia y te deseamos un excelente día.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: 8 Normas de Código de servicio -->
+        <div class="q-panel" id="panel-codigo">
+          <div class="rules-grid">
+            <div class="rule-item"><strong>1. Puntualidad:</strong> Listos de 5 a 10 minutos antes de abrir el local.</div>
+            <div class="rule-item"><strong>2. Saludo inmediato:</strong> Saludar al cliente en los primeros 10 segundos.</div>
+            <div class="rule-item"><strong>3. Buena presentación:</strong> Imagen limpia, ordenada y profesional.</div>
+            <div class="rule-item"><strong>4. Escucha activa:</strong> Escuchar sin interrupciones para entender tu necesidad.</div>
+            <div class="rule-item"><strong>5. Información veraz:</strong> Respuestas claras, correctas y en lenguaje sencillo.</div>
+            <div class="rule-item"><strong>6. Soluciones reales:</strong> Proponer al menos una solución adecuada a cada solicitud.</div>
+            <div class="rule-item"><strong>7. Respeto por tu tiempo:</strong> Atender tu solicitud en un máximo de 2 minutos.</div>
+            <div class="rule-item"><strong>8. Trato personalizado:</strong> Respeto, empatía y atención a tus necesidades particulares.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHATBOT DE PREGUNTAS FRECUENTES ================= -->
+    <section class="section" id="preguntas">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Respuestas al Instante</span>
+          <h2>Asistente Virtual de Preguntas Frecuentes</h2>
+          <p>Selecciona cualquiera de las preguntas frecuentes o escribe tu consulta. Si necesitas atención personalizada, nuestro asistente te conectará directo con WhatsApp.</p>
+        </div>
+
+        <div class="chatbot-wrapper">
+          <!-- Columna izquierda: botones de preguntas rápidas -->
+          <div class="faq-quick-panel">
+            <h3>Preguntas Frecuentes</h3>
+            <p class="faq-panel-desc">Haz clic en una pregunta para recibir la respuesta en el chat:</p>
+            <div class="faq-chips" id="faqChips">
+              <button type="button" class="faq-chip" data-faq="horario">
+                🕒 ¿Cuál es el horario de atención?
+              </button>
+              <button type="button" class="faq-chip" data-faq="impresiones">
+                🖨️ ¿Cuánto cuestan las impresiones y copias?
+              </button>
+              <button type="button" class="faq-chip" data-faq="encargo">
+                📦 ¿Cómo hago un pedido por encargo?
+              </button>
+              <button type="button" class="faq-chip" data-faq="pagos">
+                💳 ¿Qué métodos de pago aceptan?
+              </button>
+              <button type="button" class="faq-chip" data-faq="regalos">
+                🎁 ¿Qué artículos de regalo y papelería ofrecen?
+              </button>
+              <button type="button" class="faq-chip" data-faq="negocios">
+                💼 ¿Hacen tarjetas, facturas, volantes y emplasticados?
+              </button>
+              <button type="button" class="faq-chip" data-faq="tiempos">
+                ⚡ ¿Cuánto tardan en responder y entregar?
+              </button>
+            </div>
+          </div>
+
+          <!-- Columna derecha: ventana del chatbot -->
+          <div class="chatbot-card" aria-label="Chat de preguntas frecuentes">
+            <div class="chatbot-header">
+              <div class="chatbot-agent">
+                <img src="assets/logo-copiart.jpg" alt="Asistente Bazar Copi Art" class="chatbot-avatar" />
+                <div>
+                  <strong>Asistente Copi Art</strong>
+                  <span class="chatbot-status">En línea · Respuesta inmediata</span>
+                </div>
+              </div>
+              <button type="button" class="chatbot-reset" id="chatbotReset" title="Reiniciar conversación">
+                Limpiar chat
+              </button>
+            </div>
+
+            <div class="chatbot-messages" id="chatbotMessages" role="log" aria-live="polite">
+              <!-- Mensaje inicial generado también desde HTML para carga inmediata -->
+              <div class="chat-msg bot">
+                <div class="chat-bubble">
+                  ¡Hola! 👋 Soy el asistente virtual de <strong>Bazar Copi Art</strong>.
+                  Selecciona una pregunta frecuente a la izquierda o escribe tu duda abajo y con gusto te ayudaré.
+                </div>
+              </div>
+            </div>
+
+            <form class="chatbot-input-bar" id="chatbotForm">
+              <input
+                type="text"
+                id="chatbotInput"
+                placeholder="Escribe tu pregunta aquí (ej. precios, horario, SINPE, regalos)..."
+                autocomplete="off"
+                required
+              />
+              <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CONTACTO DIRECTO CON WHATSAPP ================= -->
+    <section class="section section-tint" id="contacto">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Contacto Directo</span>
+          <h2>Haz tu pedido o consulta por WhatsApp</h2>
+          <p>Atendemos presencialmente y por encargo. Escríbenos por WhatsApp, coordinamos tu pedido y solo pasas a retirar cuando esté listo.</p>
+        </div>
+
+        <div class="contact-grid">
+          <!-- Información de contacto y horario -->
+          <div class="contact-info-card">
+            <div class="info-block">
+              <h3>Horario de Atención</h3>
+              <ul class="schedule-list">
+                <li>
+                  <span>Lunes a Viernes</span>
+                  <strong>6:30 a.m. – 4:30 p.m.</strong>
+                </li>
+                <li>
+                  <span>Sábados</span>
+                  <strong>9:00 a.m. – 1:00 p.m.</strong>
+                </li>
+                <li>
+                  <span>Domingos</span>
+                  <strong>Cerrado para retiros*</strong>
+                </li>
+              </ul>
+              <p class="schedule-footnote">*Los domingos recibimos pedidos por encargo vía WhatsApp para retirar el lunes.</p>
+            </div>
+
+            <div class="info-block">
+              <h3>Modalidad y Pagos</h3>
+              <p><strong>Ubicación:</strong> Atención presencial y pedidos por encargo vía WhatsApp.</p>
+              <p><strong>Métodos de pago:</strong> SINPE Móvil y Efectivo.</p>
+            </div>
+
+            <a
+              href="https://wa.me/message/I5R57DVEH2T7L1"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-whatsapp btn-block"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.03 2a9.97 9.97 0 0 0-8.46 15.27L2 22l4.86-1.54A9.97 9.97 0 1 0 12.03 2Zm5.8 14.12c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.13.11-1.82-.11-.42-.13-.96-.31-1.65-.61-2.91-1.26-4.81-4.2-4.96-4.4-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.59-.36.79-.36h.57c.18 0 .43-.07.67.51.24.59.83 2.04.9 2.19.08.15.13.32.02.52-.1.2-.15.32-.3.5-.15.17-.31.38-.44.51-.15.15-.3.31-.13.61.17.3.77 1.27 1.65 2.06 1.14 1.01 2.1 1.33 2.4 1.48.3.15.47.12.65-.08.17-.2.74-.86.94-1.16.2-.29.4-.24.67-.14.27.1 1.73.82 2.03.96.3.15.5.22.57.34.07.12.07.7-.17 1.38Z"/></svg>
+              Abrir Chat Directo en WhatsApp
+            </a>
+          </div>
+
+          <!-- Asistente rápido de pedido -->
+          <div class="contact-form-card">
+            <h3>Prepara tu mensaje de pedido</h3>
+            <p class="form-subtitle">Completa los datos, copiamos tu mensaje automáticamente y te llevamos directo al WhatsApp oficial de Bazar Copi Art para que solo lo pegues y envíes.</p>
+
+            <form id="whatsappOrderForm" class="order-form">
+              <div class="form-group">
+                <label for="customerName">Tu nombre</label>
+                <input type="text" id="customerName" placeholder="Ej. María Pérez" required />
+              </div>
+
+              <div class="form-group">
+                <label for="serviceType">Servicio o producto</label>
+                <select id="serviceType" required>
+                  <option value="Impresiones / Copias">Impresiones / Copias</option>
+                  <option value="Copias de cédula">Copias de cédula</option>
+                  <option value="Emplasticado">Emplasticado</option>
+                  <option value="Tarjetas de presentación">Tarjetas de presentación</option>
+                  <option value="Facturas o Volantes">Facturas o Volantes</option>
+                  <option value="Folletos">Folletos (Normal / Docente)</option>
+                  <option value="Artículos de papelería o Stickers">Artículos de papelería / Stickers</option>
+                  <option value="Artículos de regalo">Artículos de regalo (Tazas, bolsos, peluches, etc.)</option>
+                  <option value="Otra consulta">Otra consulta</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="orderDetails">Detalles del pedido</label>
+                <textarea id="orderDetails" rows="3" placeholder="Ej. 10 impresiones a color, o consulta sobre taza personalizada..." required></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">
+                Copiar mensaje e ir a WhatsApp
+              </button>
+              <p class="form-feedback" id="formFeedback" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="assets/logo-copiart.jpg" alt="Logo Bazar Copi Art" class="footer-logo" />
+        <div>
+          <strong>Bazar Copi Art</strong>
+          <p>Cercanía, inmediatez, calidad y gran variedad en un mismo lugar.</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="#nosotros">Nosotros</a>
+        <a href="#servicios">Precios</a>
+        <a href="#calidad">Calidad</a>
+        <a href="#contacto">Contacto</a>
+      </div>
+
+      <p class="footer-copy">&copy; <span id="currentYear"></span> Bazar Copi Art. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- Botón flotante de WhatsApp -->
+  <a
+    href="https://wa.me/message/I5R57DVEH2T7L1"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="whatsapp-float"
+    aria-label="Chatear con Bazar Copi Art por WhatsApp"
+    title="Escríbenos por WhatsApp"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.03 2a9.97 9.97 0 0 0-8.46 15.27L2 22l4.86-1.54A9.97 9.97 0 1 0 12.03 2Zm5.8 14.12c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.13.11-1.82-.11-.42-.13-.96-.31-1.65-.61-2.91-1.26-4.81-4.2-4.96-4.4-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.59-.36.79-.36h.57c.18 0 .43-.07.67.51.24.59.83 2.04.9 2.19.08.15.13.32.02.52-.1.2-.15.32-.3.5-.15.17-.31.38-.44.51-.15.15-.3.31-.13.61.17.3.77 1.27 1.65 2.06 1.14 1.01 2.1 1.33 2.4 1.48.3.15.47.12.65-.08.17-.2.74-.86.94-1.16.2-.29.4-.24.67-.14.27.1 1.73.82 2.03.96.3.15.5.22.57.34.07.12.07.7-.17 1.38Z"/></svg>
+  </a>
+
+  <script src="script.js"></script>
+</body>
+</html>
