@@ -1007,6 +1007,79 @@ ul {
   transform: translateY(-1px);
 }
 
+.chat-menu-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.chat-num-btn {
+  text-align: left;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  border: 1px solid var(--border-soft);
+  border-left: 3.5px solid var(--accent-gold);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.chat-num-btn:hover {
+  background-color: var(--bg-tint);
+  border-color: var(--brand-plum);
+  color: var(--brand-plum);
+  transform: translateX(3px);
+}
+
+.chat-order-summary-actions {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-order-summary-actions .chat-wa-link {
+  justify-content: center;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+}
+
+.chat-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: var(--bg-main);
+  color: var(--brand-plum);
+  border: 1px solid var(--brand-plum);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.chat-copy-btn:hover {
+  background-color: var(--brand-plum);
+  color: #ffffff;
+}
+
+.chat-copied-notice {
+  font-size: 0.8rem;
+  color: var(--whatsapp-dark);
+  font-weight: 600;
+  text-align: center;
+}
+
 .chatbot-input-bar {
   display: flex;
   gap: 10px;

@@ -336,50 +336,285 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* 8. Modo Bot Paso a Paso conectado a /api/whatsapp */
+  /* 8. Modo Bot Paso a Paso (Nombre -> Teléfono -> Correo -> Menú 1 al 9 -> Detalles -> Enviar armado a WhatsApp) */
   const startStepOrderBtn = document.getElementById("startStepOrderBtn");
   let stepBotActive = false;
   let stepSession = null;
   const webSessionId = "web-" + Math.random().toString(36).slice(2, 10);
 
-  function formatWhatsAppMarkdownToHTML(text) {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\*([^*]+)\*/g, "<strong>$1</strong>")
-      .replace(/_([^_]+)_/g, "<em>$1</em>")
-      .replace(/\n/g, "<br>");
+  const STEP_SERVICE_MENU = {
+    "1": "1. Fotocopias (B/N ₡20 | Color ₡75)",
+    "2": "2. Copias de cédula (B/N ₡60 | Color ₡180)",
+    "3": "3. Impresiones (B/N ₡50 | Color ₡100)",
+    "4": "4. Folletos (₡20 por pág. · Precio especial a docentes)",
+    "5": "5. Emplasticado (Desde ₡600 según tamaño)",
+    "6": "6. Tarjetas de presentación (1 lado ₡2.000 | 2 lados ₡2.500)",
+    "7": "7. Facturas (Desde ₡3.000) o Volantes Bond (100 uds ₡5.000)",
+    "8": "8. Artículos de papelería (Personalizada desde ₡8.000 | 50 Stickers ₡2.500)",
+    "9": "9. Artículos de regalo (Separadores ₡1.500 | Tazas ₡1.700 | Bolsos ₡3.000 | Peluches desde ₡2.500 | Broches ₡600/₡1.000)",
+  };
+
+  function buildWhatsAppOrderText(session) {
+    return (
+      `Hola Bazar Copi Art, quiero realizar el siguiente pedido:\n` +
+      `• Nombre: ${session.name}\n` +
+      `• Teléfono: ${session.phone}\n` +
+      `• Correo: ${session.email}\n` +
+      `• Servicio: ${session.serviceName}\n` +
+      `• Detalles: ${session.details}`
+    );
   }
 
-  async function sendToWhatsAppWebhookSimulator(userText) {
-    try {
-      const res = await fetch("/api/whatsapp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: "simulate",
-          sessionId: webSessionId,
-          text: userText,
-          session: stepSession,
-        }),
-      });
-      if (!res.ok) throw new Error("Webhook error");
-      const data = await res.json();
-      stepSession = data.session || null;
-      const isCompleted = stepSession && stepSession.step === "COMPLETED";
-      if (isCompleted) {
-        stepBotActive = false;
+  async function copyTextToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        return false;
       }
-      const htmlReply = formatWhatsAppMarkdownToHTML(data.reply || "");
-      appendChatMessage("bot", htmlReply, isCompleted);
-    } catch {
-      appendChatMessage(
-        "bot",
-        "No se pudo conectar con el servidor de pedidos en este momento. Puedes contactarnos directamente por WhatsApp.",
-        true
-      );
     }
+    return false;
+  }
+
+  function renderNumberedMenuButtonsHTML() {
+    const buttons = Object.entries(STEP_SERVICE_MENU)
+      .map(
+        ([num, label]) =>
+          `<button type="button" class="chat-num-btn" data-menu-num="${num}">${label}</button>`
+      )
+      .join("");
+    return `<div class="chat-menu-options">${buttons}</div>`;
+  }
+
+  function attachStepBotInteractiveListeners(containerEl, completedSession) {
+    // Botones del menú numérico (1 al 9)
+    containerEl.querySelectorAll(".chat-num-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const num = btn.getAttribute("data-menu-num");
+        if (!num) return;
+        handleStepBotUserInput(num);
+      });
+    });
+
+    // Acciones finales cuando el pedido está completo
+    if (completedSession) {
+      const waText = buildWhatsAppOrderText(completedSession);
+      const sendWaBtn = containerEl.querySelector(".js-send-order-wa");
+      const copyOrderBtn = containerEl.querySelector(".js-copy-order-wa");
+      const noticeEl = containerEl.querySelector(".js-copied-notice");
+
+      if (sendWaBtn) {
+        sendWaBtn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const copied = await copyTextToClipboard(waText);
+          if (noticeEl) {
+            noticeEl.textContent = copied
+              ? "✅ ¡Ficha copiada! Abriendo WhatsApp oficial para que solo la pegues y envíes..."
+              : "Abriendo WhatsApp oficial de Bazar Copi Art...";
+          }
+          window.open(WHATSAPP_URL, "_blank", "noopener,noreferrer");
+        });
+      }
+
+      if (copyOrderBtn) {
+        copyOrderBtn.addEventListener("click", async () => {
+          const copied = await copyTextToClipboard(waText);
+          if (noticeEl) {
+            noticeEl.textContent = copied
+              ? "✅ ¡Ficha copiada al portapapeles! Lista para pegar en WhatsApp."
+              : "No se pudo copiar automáticamente.";
+          }
+        });
+      }
+    }
+  }
+
+  function appendStepBotMessage(htmlContent, extraHTML = "", completedSession = null) {
+    if (!chatbotMessages) return;
+
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "chat-msg bot";
+
+    const bubbleDiv = document.createElement("div");
+    bubbleDiv.className = "chat-bubble";
+    bubbleDiv.innerHTML = htmlContent + extraHTML;
+
+    msgDiv.appendChild(bubbleDiv);
+    chatbotMessages.appendChild(msgDiv);
+    attachStepBotInteractiveListeners(bubbleDiv, completedSession);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+
+  async function processLocalOrRemoteStep(userText) {
+    const clean = (userText || "").trim();
+    const lower = clean.toLowerCase();
+
+    // Sincronizar en segundo plano con /api/whatsapp en Vercel
+    fetch("/api/whatsapp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: "simulate",
+        sessionId: webSessionId,
+        text: clean,
+        session: stepSession,
+      }),
+    }).catch(() => {});
+
+    const isReset =
+      !stepSession ||
+      lower === "hola" ||
+      lower === "inicio" ||
+      lower === "menu" ||
+      lower === "menú" ||
+      lower === "reiniciar";
+
+    if (isReset || stepSession.step === "COMPLETED") {
+      stepSession = {
+        step: "ASK_NAME",
+        name: "",
+        phone: "",
+        email: "",
+        serviceNumber: "",
+        serviceName: "",
+        details: "",
+      };
+      if (chatbotInput) {
+        chatbotInput.placeholder = "Paso 1: Escribe tu nombre completo...";
+      }
+      appendStepBotMessage(
+        "¡Perfecto! Vamos a preparar tu pedido paso a paso para <strong>Bazar Copi Art</strong>. 📝<br><br>" +
+          "<strong>Paso 1 de 5:</strong> Por favor escribe tu <strong>nombre completo</strong>:"
+      );
+      return;
+    }
+
+    if (stepSession.step === "ASK_NAME") {
+      if (clean.length < 2) {
+        appendStepBotMessage("Por favor escribe tu <strong>nombre completo</strong> para continuar:");
+        return;
+      }
+      stepSession.name = clean;
+      stepSession.step = "ASK_PHONE";
+      if (chatbotInput) {
+        chatbotInput.placeholder = "Paso 2: Escribe tu número de teléfono (ej. 8888-8888)...";
+      }
+      appendStepBotMessage(
+        `¡Mucho gusto, <strong>${stepSession.name}</strong>! 😊<br><br>` +
+          `<strong>Paso 2 de 5:</strong> Indícanos tu <strong>número de teléfono</strong> de contacto (ej. 8888-8888):`
+      );
+      return;
+    }
+
+    if (stepSession.step === "ASK_PHONE") {
+      const digits = clean.replace(/\D/g, "");
+      if (digits.length < 7) {
+        appendStepBotMessage("Por favor ingresa un <strong>número de teléfono válido</strong> (ej. 8888-8888):");
+        return;
+      }
+      stepSession.phone = clean;
+      stepSession.step = "ASK_EMAIL";
+      if (chatbotInput) {
+        chatbotInput.placeholder = "Paso 3: Escribe tu correo electrónico (ej. nombre@correo.com)...";
+      }
+      appendStepBotMessage(
+        `Teléfono registrado (<strong>${stepSession.phone}</strong>). 📱<br><br>` +
+          `<strong>Paso 3 de 5:</strong> Ahora escribe tu <strong>correo electrónico</strong>:`
+      );
+      return;
+    }
+
+    if (stepSession.step === "ASK_EMAIL") {
+      if (!clean.includes("@") || !clean.includes(".")) {
+        appendStepBotMessage("Por favor ingresa un <strong>correo electrónico válido</strong> (ej. cliente@correo.com):");
+        return;
+      }
+      stepSession.email = clean;
+      stepSession.step = "ASK_SERVICE";
+      if (chatbotInput) {
+        chatbotInput.placeholder = "Paso 4: Escribe un número del 1 al 9 o haz clic en una opción...";
+      }
+      appendStepBotMessage(
+        `¡Gracias, <strong>${stepSession.name}</strong>! Ya guardamos tus datos personales.<br><br>` +
+          `<strong>Paso 4 de 5:</strong> Escribe el <strong>número (del 1 al 9)</strong> o haz clic en el servicio que necesitas:`,
+        renderNumberedMenuButtonsHTML()
+      );
+      return;
+    }
+
+    if (stepSession.step === "ASK_SERVICE") {
+      const match = clean.match(/^[1-9]$/);
+      const num = match ? match[0] : null;
+      if (!num || !STEP_SERVICE_MENU[num]) {
+        appendStepBotMessage(
+          "Por favor responde con un <strong>número del 1 al 9</strong> o selecciona una opción de la lista:",
+          renderNumberedMenuButtonsHTML()
+        );
+        return;
+      }
+      stepSession.serviceNumber = num;
+      stepSession.serviceName = STEP_SERVICE_MENU[num];
+      stepSession.step = "ASK_DETAILS";
+      if (chatbotInput) {
+        chatbotInput.placeholder = "Paso 5: Escribe la cantidad y detalles de tu pedido...";
+      }
+      appendStepBotMessage(
+        `Has seleccionado:<br>✅ <strong>${stepSession.serviceName}</strong><br><br>` +
+          `<strong>Paso 5 de 5:</strong> Escribe la <strong>cantidad y detalles</strong> de lo que necesitas (ej. blanco y negro o color, tamaño, o especificaciones):`
+      );
+      return;
+    }
+
+    if (stepSession.step === "ASK_DETAILS") {
+      stepSession.details = clean;
+      stepSession.step = "COMPLETED";
+      stepBotActive = false;
+      if (chatbotInput) {
+        chatbotInput.placeholder = "Escribe tu pregunta aquí (ej. precios, horario, SINPE, regalos)...";
+      }
+
+      const completedSnapshot = { ...stepSession };
+      const waFormatted = buildWhatsAppOrderText(completedSnapshot);
+      await copyTextToClipboard(waFormatted);
+
+      // Rellenar también el formulario de contacto inferior automáticamente
+      const nameInput = document.getElementById("customerName");
+      const detailsInput = document.getElementById("orderDetails");
+      if (nameInput) nameInput.value = completedSnapshot.name;
+      if (detailsInput) {
+        detailsInput.value = `Tel: ${completedSnapshot.phone} | Correo: ${completedSnapshot.email} | Servicio: ${completedSnapshot.serviceName} | Detalles: ${completedSnapshot.details}`;
+      }
+
+      const summaryHTML =
+        `🎉 <strong>¡Ficha de Pedido Lista para Enviar!</strong><br><br>` +
+        `• <strong>Nombre:</strong> ${completedSnapshot.name}<br>` +
+        `• <strong>Teléfono:</strong> ${completedSnapshot.phone}<br>` +
+        `• <strong>Correo:</strong> ${completedSnapshot.email}<br>` +
+        `• <strong>Servicio:</strong> ${completedSnapshot.serviceName}<br>` +
+        `• <strong>Detalles:</strong> ${completedSnapshot.details}<br><br>` +
+        `Hemos copiado tu ficha automáticamente. Haz clic abajo para abrir nuestro WhatsApp oficial, pegar tu pedido y recibir atención directa en menos de 10 minutos:`;
+
+      const actionsHTML = `
+        <div class="chat-order-summary-actions">
+          <a href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer" class="chat-wa-link js-send-order-wa">
+            📲 Enviar Pedido Armado a WhatsApp Ahora
+          </a>
+          <button type="button" class="chat-copy-btn js-copy-order-wa">
+            📋 Volver a copiar ficha del pedido
+          </button>
+          <span class="chat-copied-notice js-copied-notice">✅ Ficha copiada automáticamente al portapapeles</span>
+        </div>
+      `;
+
+      appendStepBotMessage(summaryHTML, actionsHTML, completedSnapshot);
+    }
+  }
+
+  async function handleStepBotUserInput(text) {
+    appendChatMessage("user", text, false);
+    await processLocalOrRemoteStep(text);
+    if (chatbotInput) chatbotInput.focus();
   }
 
   if (startStepOrderBtn) {
@@ -387,7 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
       stepBotActive = true;
       stepSession = null;
       appendChatMessage("user", "Quiero hacer un pedido paso a paso", false);
-      await sendToWhatsAppWebhookSimulator("hola");
+      await processLocalOrRemoteStep("hola");
       if (chatbotInput) chatbotInput.focus();
     });
   }
@@ -398,10 +633,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const userQuestion = chatbotInput.value.trim();
       if (!userQuestion) return;
 
-      appendChatMessage("user", userQuestion, false);
       chatbotInput.value = "";
-
       const lower = userQuestion.toLowerCase();
+
       if (
         stepBotActive ||
         lower === "hola" ||
@@ -411,10 +645,11 @@ document.addEventListener("DOMContentLoaded", () => {
         lower === "comprar"
       ) {
         stepBotActive = true;
-        await sendToWhatsAppWebhookSimulator(userQuestion);
+        await handleStepBotUserInput(userQuestion);
         return;
       }
 
+      appendChatMessage("user", userQuestion, false);
       const answerHTML = matchFreeTextQuestion(userQuestion);
       setTimeout(() => {
         appendChatMessage("bot", answerHTML, true);
@@ -426,11 +661,14 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotReset.addEventListener("click", () => {
       stepBotActive = false;
       stepSession = null;
+      if (chatbotInput) {
+        chatbotInput.placeholder = "Escribe tu pregunta aquí (ej. precios, horario, SINPE, regalos)...";
+      }
       chatbotMessages.innerHTML = `
         <div class="chat-msg bot">
           <div class="chat-bubble">
             ¡Hola! 👋 Soy el asistente virtual de <strong>Bazar Copi Art</strong>.
-            Selecciona <strong>"Hacer Pedido Paso a Paso"</strong> o una pregunta frecuente a la izquierda, o escribe <strong>HOLA</strong> abajo para comenzar.
+            Selecciona <strong>"📝 Hacer Pedido Paso a Paso"</strong> a la izquierda para registrar tu pedido con menú numérico, o elige una pregunta frecuente.
           </div>
         </div>
       `;
