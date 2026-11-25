@@ -172,6 +172,7 @@ function searchInventoryMatch(rawText, inventory = []) {
 
 function detectFAQAnswer(rawText, inventory = []) {
   const norm = stripAccents(rawText);
+  const answers = [];
 
   if (
     norm.includes("horario") ||
@@ -182,11 +183,11 @@ function detectFAQAnswer(rawText, inventory = []) {
     norm.includes("domingo") ||
     norm.includes("sabado")
   ) {
-    return (
+    answers.push(
       `🕒 *Horario de atención en Bazar Copi Art:*\n` +
-      `• *Lunes a Viernes:* 6:30 a.m. – 4:30 p.m.\n` +
-      `• *Sábados:* 9:00 a.m. – 1:00 p.m.\n` +
-      `• *Domingos:* Cerrado para retiros físicos, pero recibimos pedidos por encargo vía WhatsApp para retirar el lunes.`
+        `• *Lunes a Viernes:* 6:30 a.m. – 4:30 p.m.\n` +
+        `• *Sábados:* 9:00 a.m. – 1:00 p.m.\n` +
+        `• *Domingos:* Cerrado para retiros físicos, pero recibimos pedidos por encargo vía WhatsApp para retirar el lunes.`
     );
   }
 
@@ -199,20 +200,27 @@ function detectFAQAnswer(rawText, inventory = []) {
     norm.includes("tarjeta de credito") ||
     norm.includes("tarjeta de debito")
   ) {
-    return `💳 Aceptamos pagos rápidos y seguros por *SINPE Móvil* y *Efectivo*.`;
+    answers.push(`💳 Aceptamos pagos rápidos y seguros por *SINPE Móvil* y *Efectivo*.`);
   }
 
-  if (norm.includes("cedula")) {
-    return `🪪 *Copias de cédula:* Blanco y negro *₡60* | A color *₡180*. Con gusto te las preparamos.`;
+  const hasPrintOrCopies =
+    norm.includes("impresion") ||
+    norm.includes("imprimir") ||
+    norm.includes("copia") ||
+    norm.includes("folleto") ||
+    norm.includes("docente");
+
+  if (norm.includes("cedula") && !hasPrintOrCopies) {
+    answers.push(`🪪 *Copias de cédula:* Blanco y negro *₡60* | A color *₡180*. Con gusto te las preparamos.`);
   }
 
-  if (norm.includes("impresion") || norm.includes("imprimir") || norm.includes("copia") || norm.includes("folleto") || norm.includes("docente")) {
-    return (
+  if (hasPrintOrCopies) {
+    answers.push(
       `🖨️ *Precios de Impresiones y Copias:*\n` +
-      `• *Impresiones:* Blanco y negro ₡50 | Color ₡100\n` +
-      `• *Copias:* Blanco y negro ₡20 | Color ₡75\n` +
-      `• *Copias de cédula:* B/N ₡60 | Color ₡180\n` +
-      `• *Folletos:* ₡20 por pág. _(precio especial para docentes)_.`
+        `• *Impresiones:* Blanco y negro ₡50 | Color ₡100\n` +
+        `• *Copias:* Blanco y negro ₡20 | Color ₡75\n` +
+        `• *Copias de cédula:* B/N ₡60 | Color ₡180\n` +
+        `• *Folletos:* ₡20 por pág. _(precio especial para docentes)_.`
     );
   }
 
@@ -229,40 +237,43 @@ function detectFAQAnswer(rawText, inventory = []) {
     const tazas = inventory.find((i) => i.id === "INV-010");
     const stockNote =
       tazas && tazas.stock > 0 ? `\n_(En inventario actual: ${tazas.stock} tazas disponibles)_` : "";
-    return (
+    answers.push(
       `🎁 *Artículos de Regalo y Papelería:*\n` +
-      `• *Broches:* Pequeños ₡600 | Grandes ₡1.000\n` +
-      `• *Separadores:* ₡1.500\n` +
-      `• *Tazas:* ₡1.700\n` +
-      `• *Peluches:* Desde ₡2.500 en adelante\n` +
-      `• *Bolsos de tela:* ₡3.000\n` +
-      `• *Stickers (50 uds):* ₡2.500\n` +
-      `• *Papelería personalizada:* Desde ₡8.000.${stockNote}`
+        `• *Broches:* Pequeños ₡600 | Grandes ₡1.000\n` +
+        `• *Separadores:* ₡1.500\n` +
+        `• *Tazas:* ₡1.700\n` +
+        `• *Peluches:* Desde ₡2.500 en adelante\n` +
+        `• *Bolsos de tela:* ₡3.000\n` +
+        `• *Stickers (50 uds):* ₡2.500\n` +
+        `• *Papelería personalizada:* Desde ₡8.000.${stockNote}`
     );
   }
 
   if (norm.includes("tarjeta") || norm.includes("factura") || norm.includes("volante") || norm.includes("emplastic")) {
-    return (
+    answers.push(
       `💼 *Servicios para Negocios y Documentos:*\n` +
-      `• *Emplasticado:* Desde ₡600 según tamaño\n` +
-      `• *Tarjetas de presentación:* 1 lado ₡2.000 | Ambos lados ₡2.500\n` +
-      `• *Facturas:* Desde ₡3.000 según diseño\n` +
-      `• *Volantes Papel Bond (100 uds):* ₡5.000.`
+        `• *Emplasticado:* Desde ₡600 según tamaño\n` +
+        `• *Tarjetas de presentación:* 1 lado ₡2.000 | Ambos lados ₡2.500\n` +
+        `• *Facturas:* Desde ₡3.000 según diseño\n` +
+        `• *Volantes Papel Bond (100 uds):* ₡5.000.`
     );
   }
 
   if (norm.includes("donde") || norm.includes("ubicacion") || norm.includes("retir") || norm.includes("como pido") || norm.includes("encargo")) {
-    return (
+    answers.push(
       `📦 *Pedidos por encargo:*\n` +
-      `Nos envías tus archivos o lo que necesitas por este WhatsApp, nosotros lo preparamos y te avisamos para que *solamente pases a retirar cuando esté listo*, sin hacer filas.`
+        `Nos envías tus archivos o lo que necesitas por WhatsApp, nosotros lo preparamos y te avisamos para que *solamente pases a retirar cuando esté listo*, sin hacer filas.`
     );
   }
 
   if (norm.includes("tiempo") || norm.includes("tardan") || norm.includes("rapido") || norm.includes("dura")) {
-    return `⚡ Respondemos en menos de *10 minutos* en línea (menos de 5 min en tienda), con 97% de entregas a tiempo.`;
+    answers.push(`⚡ Respondemos en menos de *10 minutos* en línea (menos de 5 min en tienda), con 97% de entregas a tiempo.`);
   }
 
-  if (norm.includes("precio") || norm.includes("cuesta") || norm.includes("cuanto") || norm.includes("tarifa") || norm.includes("catalogo") || norm.includes("servicios")) {
+  if (
+    answers.length === 0 &&
+    (norm.includes("precio") || norm.includes("cuesta") || norm.includes("cuanto") || norm.includes("tarifa") || norm.includes("catalogo") || norm.includes("servicios"))
+  ) {
     const invMatches = searchInventoryMatch(rawText, inventory);
     if (invMatches.length > 0 && !norm.includes("catalogo") && !norm.includes("servicios")) {
       const list = invMatches
@@ -287,20 +298,22 @@ function detectFAQAnswer(rawText, inventory = []) {
   }
 
   // Búsqueda directa en inventario por nombre de producto nuevo agregado por la jefa
-  const dynamicMatches = searchInventoryMatch(rawText, inventory);
-  if (dynamicMatches.length > 0 && looksLikeQuestionOrGreeting(rawText)) {
-    const list = dynamicMatches
-      .map(
-        (i) =>
-          `• *${i.name}:* ${i.salePrice > 0 ? `₡${i.salePrice.toLocaleString("es-CR")}` : "Según diseño"} (${
-            i.stock > 0 ? `${i.stock} ${i.unit} disponibles` : "sin stock en este momento"
-          })`
-      )
-      .join("\n");
-    return `📦 *Disponibilidad en Bazar Copi Art:*\n${list}`;
+  if (answers.length === 0) {
+    const dynamicMatches = searchInventoryMatch(rawText, inventory);
+    if (dynamicMatches.length > 0 && looksLikeQuestionOrGreeting(rawText)) {
+      const list = dynamicMatches
+        .map(
+          (i) =>
+            `• *${i.name}:* ${i.salePrice > 0 ? `₡${i.salePrice.toLocaleString("es-CR")}` : "Según diseño"} (${
+              i.stock > 0 ? `${i.stock} ${i.unit} disponibles` : "sin stock en este momento"
+            })`
+        )
+        .join("\n");
+      return `📦 *Disponibilidad en Bazar Copi Art:*\n${list}`;
+    }
   }
 
-  return null;
+  return answers.length > 0 ? answers.join("\n\n") : null;
 }
 
 function looksLikeQuestionOrGreeting(rawText) {

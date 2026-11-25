@@ -170,17 +170,17 @@
   border-bottom: 1px solid var(--border-soft);
   padding: 0 24px;
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .admin-tab-btn {
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  padding: 14px 16px;
+  padding: 12px 13px;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
