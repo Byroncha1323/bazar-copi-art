@@ -126,6 +126,37 @@ export async function GET(request) {
   });
 }
 
+function sanitizeWebSession(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const allowedSteps = new Set([
+    "IDLE",
+    "ASK_NAME",
+    "ASK_PHONE",
+    "ASK_EMAIL",
+    "ASK_SERVICE",
+    "ASK_DETAILS",
+    "COMPLETED",
+  ]);
+  const history = Array.isArray(raw.history)
+    ? raw.history
+        .slice(-14)
+        .filter((h) => h && (h.role === "user" || h.role === "assistant"))
+        .map((h) => ({ role: h.role, text: String(h.text || "").slice(0, 1200) }))
+    : [];
+
+  return {
+    step: allowedSteps.has(raw.step) ? raw.step : "IDLE",
+    name: String(raw.name || "").slice(0, 120),
+    phone: String(raw.phone || "").slice(0, 40),
+    email: String(raw.email || "").slice(0, 120),
+    serviceNumber: String(raw.serviceNumber || "").slice(0, 4),
+    serviceName: String(raw.serviceName || "").slice(0, 200),
+    details: String(raw.details || "").slice(0, 1500),
+    history,
+    updatedAt: Date.now(),
+  };
+}
+
 /**
  * POST /api/whatsapp
  * - Recibe eventos en vivo de Meta WhatsApp Cloud API y responde con coherencia / IA
@@ -135,13 +166,21 @@ export async function POST(request) {
   const startedAt = performance.now();
 
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return Response.json({ ok: false, error: "JSON inválido en la solicitud." }, { status: 400 });
+    }
 
-    // 1. Modo Chat Inteligente o Simulador desde la página web
+    // 1. Modo Chat Inteligente o Simulador desde la página web (aislado con prefijo web:)
     if (body && (body.mode === "chat" || body.mode === "simulate")) {
-      const sessionId = body.sessionId || "web-guest";
-      const text = body.text || "";
-      const clientSession = body.session || null;
+      const rawSessionId = String(body.sessionId || "guest")
+        .replace(/[^a-zA-Z0-9_-]/g, "")
+        .slice(0, 64) || "guest";
+      const sessionId = `web:${rawSessionId}`;
+      const text = String(body.text || "").slice(0, 2000);
+      const clientSession = sanitizeWebSession(body.session);
 
       const result = await processCoherentMessage({
         sessionId,

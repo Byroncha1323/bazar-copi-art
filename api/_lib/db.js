@@ -346,10 +346,34 @@ export function createInitialDatabase() {
 }
 
 function getUpstashConfig() {
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  let url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  let token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+  if (!url || !token) {
+    // Soportar prefijos personalizados creados por Vercel Marketplace (ej. BAZAR_KV_REST_API_URL)
+    for (const [k, v] of Object.entries(process.env)) {
+      if (!v) continue;
+      if (k.endsWith("_KV_REST_API_URL")) {
+        const tok = process.env[k.replace(/_KV_REST_API_URL$/, "_KV_REST_API_TOKEN")];
+        if (tok) {
+          url = v;
+          token = tok;
+          break;
+        }
+      }
+      if (k.endsWith("_UPSTASH_REDIS_REST_URL")) {
+        const tok = process.env[k.replace(/_UPSTASH_REDIS_REST_URL$/, "_UPSTASH_REDIS_REST_TOKEN")];
+        if (tok) {
+          url = v;
+          token = tok;
+          break;
+        }
+      }
+    }
+  }
+
   if (url && token) {
-    return { url: url.replace(/\/+$/, ""), token };
+    return { url: String(url).replace(/\/+$/, ""), token: String(token) };
   }
   return null;
 }

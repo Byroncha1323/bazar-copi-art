@@ -328,10 +328,12 @@ function updateSyncPill(ok) {
   pill.classList.toggle("warn", !persistent);
 }
 
-// Auto-sincronización cada 15s cuando no hay modal abierto
+// Auto-sincronización cada 15s cuando no hay modal abierto ni edición en curso
 setInterval(() => {
   if (!authToken || !dbState) return;
   if (el("editorModal")?.classList.contains("open")) return;
+  const activeTag = document.activeElement?.tagName;
+  if (activeTag === "INPUT" || activeTag === "SELECT" || activeTag === "TEXTAREA") return;
   refreshDatabase(true);
 }, 15000);
 

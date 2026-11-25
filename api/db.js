@@ -70,25 +70,45 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return Response.json({ ok: false, error: "JSON inválido en la solicitud." }, { status: 400 });
+    }
     const action = body?.action;
 
     // Acción pública: registrar pedido desde la página web (formulario o chatbot)
+    // Lista blanca estricta de campos para evitar suplantación de estado, monto o rebajo de stock.
     if (action === "public_order") {
-      const payload = body?.order || {};
-      if (!payload.customerName && !payload.details) {
+      const payload = body?.order && typeof body.order === "object" ? body.order : {};
+      const customerName = String(payload.customerName || "").trim().slice(0, 120);
+      const details = String(payload.details || "").trim().slice(0, 1500);
+      const serviceName = String(payload.serviceName || "").trim().slice(0, 200);
+      const phone = String(payload.phone || "").trim().slice(0, 40);
+      const email = String(payload.email || "").trim().slice(0, 120);
+
+      if (!customerName || (!details && !serviceName)) {
         return Response.json(
-          { ok: false, error: "Faltan los datos del pedido." },
+          { ok: false, error: "Faltan datos obligatorios del pedido (nombre y detalle)." },
           { status: 400 }
         );
       }
 
+      const safeSource = payload.source === "web_chatbot" ? "web_chatbot" : "web_form";
       const order = await recordOrder(
         {
-          ...payload,
-          source: payload.source || "web_form",
+          customerName,
+          phone,
+          email,
+          serviceName: serviceName || "Consulta / Pedido Web",
+          details,
+          source: safeSource,
+          status: "Pendiente",
+          paymentMethod: "Pendiente",
+          deductStock: false,
         },
-        payload.source || "web"
+        safeSource
       );
 
       return Response.json({ ok: true, order }, { status: 201 });

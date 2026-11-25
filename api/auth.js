@@ -23,7 +23,12 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return Response.json({ ok: false, error: "JSON inválido." }, { status: 400 });
+    }
     const { username, password } = body || {};
 
     if (!username || !password) {
@@ -68,7 +73,12 @@ export async function PUT(request) {
       return Response.json({ ok: false, error: "No autorizado." }, { status: 401 });
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return Response.json({ ok: false, error: "JSON inválido." }, { status: 400 });
+    }
     const result = await updateAdminCredentials(body || {});
     if (!result.ok) {
       return Response.json({ ok: false, error: result.error }, { status: 400 });
