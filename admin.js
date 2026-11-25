@@ -186,12 +186,52 @@ function handleForceLogout() {
 }
 
 // ================= LOGIN Y AUTENTICACIÓN =================
+let loginTurnstileToken = "";
+let loginTurnstileWidgetId = null;
+
+function initLoginTurnstile(siteKey) {
+  const container = el("loginTurnstileBox");
+  if (!container || !siteKey || loginTurnstileWidgetId !== null) return;
+
+  const render = () => {
+    if (!window.turnstile || loginTurnstileWidgetId !== null) return;
+    loginTurnstileWidgetId = window.turnstile.render(container, {
+      sitekey: siteKey,
+      theme: "light",
+      callback: (token) => {
+        loginTurnstileToken = token;
+      },
+      "expired-callback": () => {
+        loginTurnstileToken = "";
+      },
+      "error-callback": () => {
+        loginTurnstileToken = "";
+      },
+    });
+  };
+
+  if (window.turnstile) {
+    render();
+    return;
+  }
+
+  const s = document.createElement("script");
+  s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+  s.async = true;
+  s.defer = true;
+  s.onload = render;
+  document.head.appendChild(s);
+}
+
 async function checkInitialAuth() {
   try {
     const res = await fetch("/api/auth", {
       headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
     });
     const data = await res.json();
+    if (data.turnstileSiteKey) {
+      initLoginTurnstile(data.turnstileSiteKey);
+    }
     if (data.authenticated) {
       showAdminShell();
       await refreshDatabase();
@@ -217,6 +257,13 @@ el("loginForm")?.addEventListener("submit", async (e) => {
   const btn = el("loginSubmitBtn");
 
   errEl.classList.remove("visible");
+
+  if (loginTurnstileWidgetId !== null && !loginTurnstileToken) {
+    errEl.textContent = "Completa la verificación de seguridad antes de entrar.";
+    errEl.classList.add("visible");
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = "Verificando...";
 
@@ -224,11 +271,15 @@ el("loginForm")?.addEventListener("submit", async (e) => {
     const res = await fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({
+        username,
+        password,
+        cfTurnstileToken: loginTurnstileToken,
+      }),
     });
     const data = await res.json();
     if (!res.ok || !data.ok) {
-      throw new Error(data.error || "Credenciales incorrectas.");
+      throw new Error(data.error || "Usuario o contraseña incorrectos.");
     }
 
     authToken = data.token;
@@ -237,13 +288,17 @@ el("loginForm")?.addEventListener("submit", async (e) => {
     el("loginPass").value = "";
     showAdminShell();
     await refreshDatabase();
-    showToast(`Bienvenido(a), ${data.username}`);
+    showToast(`¡Bienvenido(a), ${data.username}!`);
   } catch (err) {
     errEl.textContent = err.message;
     errEl.classList.add("visible");
   } finally {
+    if (window.turnstile && loginTurnstileWidgetId !== null) {
+      loginTurnstileToken = "";
+      window.turnstile.reset(loginTurnstileWidgetId);
+    }
     btn.disabled = false;
-    btn.textContent = "🔐 Ingresar al Panel";
+    btn.textContent = "🔐 Entrar a Mi Negocio";
   }
 });
 

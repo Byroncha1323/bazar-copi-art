@@ -23,7 +23,44 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/\n/g, "<br>");
   }
 
-  async function syncOrderToCRM(orderPayload) {
+  let orderTurnstileToken = "";
+  let orderTurnstileWidgetId = null;
+
+  function loadCloudflareTurnstile(containerId, siteKey, onToken) {
+    const container = document.getElementById(containerId);
+    if (!container || !siteKey) return;
+
+    const renderWidget = () => {
+      if (!window.turnstile) return;
+      orderTurnstileWidgetId = window.turnstile.render(container, {
+        sitekey: siteKey,
+        theme: "light",
+        callback: (token) => onToken(token),
+        "expired-callback": () => onToken(""),
+        "error-callback": () => onToken(""),
+      });
+    };
+
+    if (window.turnstile) {
+      renderWidget();
+      return;
+    }
+
+    const existingScript = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+    if (existingScript) {
+      existingScript.addEventListener("load", renderWidget);
+      return;
+    }
+
+    const s = document.createElement("script");
+    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    s.async = true;
+    s.defer = true;
+    s.onload = renderWidget;
+    document.head.appendChild(s);
+  }
+
+  async function syncOrderToCRM(orderPayload, cfTurnstileToken = "") {
     try {
       const res = await fetch("/api/db", {
         method: "POST",
@@ -31,6 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({
           action: "public_order",
           order: orderPayload,
+          cfTurnstileToken,
         }),
       });
       if (!res.ok) return null;
@@ -146,12 +184,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const formFeedback = document.getElementById("formFeedback");
   const serviceSelect = document.getElementById("serviceType");
 
-  // Sincronizar catálogo en vivo desde la BD para incluir productos nuevos creados en Inventario
-  if (serviceSelect) {
-    fetch("/api/db?action=public_catalog")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!data?.ok || !Array.isArray(data.inventory)) return;
+  // Sincronizar catálogo en vivo y seguridad Cloudflare Turnstile desde /api/db
+  fetch("/api/db?action=public_catalog")
+    .then((r) => (r.ok ? r.json() : null))
+    .then((data) => {
+      if (!data?.ok) return;
+      if (data.turnstileSiteKey) {
+        loadCloudflareTurnstile("orderTurnstileBox", data.turnstileSiteKey, (t) => {
+          orderTurnstileToken = t;
+        });
+      }
+      if (serviceSelect && Array.isArray(data.inventory)) {
         const existingVals = new Set(
           [...serviceSelect.options].map((o) => o.value.toLowerCase())
         );
@@ -164,13 +207,20 @@ document.addEventListener("DOMContentLoaded", () => {
             opt.textContent = `${item.name} — ₡${item.salePrice.toLocaleString("es-CR")}`;
             serviceSelect.insertBefore(opt, serviceSelect.lastElementChild);
           });
-      })
-      .catch(() => {});
-  }
+      }
+    })
+    .catch(() => {});
 
   if (orderForm) {
     orderForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      if (orderTurnstileWidgetId !== null && !orderTurnstileToken) {
+        if (formFeedback) {
+          formFeedback.textContent = "Por favor completa la verificación de seguridad arriba antes de enviar.";
+        }
+        return;
+      }
 
       const name = document.getElementById("customerName").value.trim();
       const phone = document.getElementById("customerPhone")?.value.trim() || "";
@@ -188,15 +238,23 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const [savedOrder] = await Promise.all([
-        syncOrderToCRM({
-          source: "web_form",
-          customerName: name,
-          phone,
-          serviceName: service,
-          details,
-        }),
+        syncOrderToCRM(
+          {
+            source: "web_form",
+            customerName: name,
+            phone,
+            serviceName: service,
+            details,
+          },
+          orderTurnstileToken
+        ),
         copyTextToClipboard(formattedMessage),
       ]);
+
+      if (window.turnstile && orderTurnstileWidgetId !== null) {
+        orderTurnstileToken = "";
+        window.turnstile.reset(orderTurnstileWidgetId);
+      }
 
       if (formFeedback) {
         formFeedback.textContent = savedOrder

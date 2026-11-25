@@ -1,6 +1,12 @@
 import { requireAdmin } from "./_lib/auth.js";
 import { getAIStatus } from "./_lib/assistant.js";
 import {
+  checkRateLimit,
+  getClientIp,
+  getTurnstileSiteKey,
+  verifyTurnstileToken,
+} from "./_lib/security.js";
+import {
   readDatabase,
   writeDatabase,
   recordOrder,
@@ -45,6 +51,7 @@ export async function GET(request) {
       ok: true,
       whatsappUrl: db.settings?.whatsappUrl || "https://wa.me/50664760290",
       aiStatus: getAIStatus(),
+      turnstileSiteKey: getTurnstileSiteKey(),
       inventory: (db.inventory || [])
         .filter((i) => i.type !== "Insumo")
         .map((i) => ({
@@ -81,7 +88,22 @@ export async function POST(request) {
     // Acción pública: registrar pedido desde la página web (formulario o chatbot)
     // Lista blanca estricta de campos para evitar suplantación de estado, monto o rebajo de stock.
     if (action === "public_order") {
+      const ip = getClientIp(request);
+      const rate = checkRateLimit("public_order", ip, 12, 60_000);
+      if (!rate.allowed) {
+        return Response.json(
+          { ok: false, error: "Demasiados pedidos seguidos. Intenta en un minuto." },
+          { status: 429 }
+        );
+      }
+
       const payload = body?.order && typeof body.order === "object" ? body.order : {};
+      if (payload.source !== "web_chatbot") {
+        const turnstile = await verifyTurnstileToken(body?.cfTurnstileToken, request);
+        if (!turnstile.ok) {
+          return Response.json({ ok: false, error: turnstile.error }, { status: 403 });
+        }
+      }
       const customerName = String(payload.customerName || "").trim().slice(0, 120);
       const details = String(payload.details || "").trim().slice(0, 1500);
       const serviceName = String(payload.serviceName || "").trim().slice(0, 200);

@@ -1,6 +1,7 @@
 import { metric } from "@vercel/functions";
 import { getAIStatus, processCoherentMessage } from "./_lib/assistant.js";
 import { getStorageStatus, isMessageAlreadyProcessed } from "./_lib/db.js";
+import { checkRateLimit, getClientIp } from "./_lib/security.js";
 
 /**
  * Envía un mensaje de texto usando la API Oficial de WhatsApp Cloud (Meta Graph API)
@@ -122,6 +123,22 @@ export async function GET(request) {
       hasCustomVerifyToken: Boolean(process.env.WHATSAPP_VERIFY_TOKEN),
       hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
       hasOpenAIKey: Boolean(process.env.OPENAI_API_KEY),
+      hasCloudflareTurnstile: Boolean(
+        process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY
+      ),
+      hasCloudflareAI: Boolean(
+        process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN
+      ),
+      hasCloudflareD1: Boolean(
+        process.env.CLOUDFLARE_ACCOUNT_ID &&
+          process.env.CLOUDFLARE_API_TOKEN &&
+          process.env.CLOUDFLARE_D1_DATABASE_ID
+      ),
+      hasCloudflareKV: Boolean(
+        process.env.CLOUDFLARE_ACCOUNT_ID &&
+          process.env.CLOUDFLARE_API_TOKEN &&
+          process.env.CLOUDFLARE_KV_NAMESPACE_ID
+      ),
     },
   });
 }
@@ -175,6 +192,15 @@ export async function POST(request) {
 
     // 1. Modo Chat Inteligente o Simulador desde la página web (aislado con prefijo web:)
     if (body && (body.mode === "chat" || body.mode === "simulate")) {
+      const ip = getClientIp(request);
+      const rate = checkRateLimit("web_chat", ip, 30, 60_000);
+      if (!rate.allowed) {
+        return Response.json(
+          { ok: false, error: "Estás enviando mensajes muy rápido. Espera unos segundos." },
+          { status: 429 }
+        );
+      }
+
       const rawSessionId = String(body.sessionId || "guest")
         .replace(/[^a-zA-Z0-9_-]/g, "")
         .slice(0, 64) || "guest";

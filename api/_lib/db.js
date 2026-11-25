@@ -345,6 +345,26 @@ export function createInitialDatabase() {
   };
 }
 
+function getCloudflareD1Config() {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+  const databaseId = process.env.CLOUDFLARE_D1_DATABASE_ID;
+  if (accountId && apiToken && databaseId) {
+    return { accountId, apiToken, databaseId };
+  }
+  return null;
+}
+
+function getCloudflareKVConfig() {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+  const namespaceId = process.env.CLOUDFLARE_KV_NAMESPACE_ID;
+  if (accountId && apiToken && namespaceId) {
+    return { accountId, apiToken, namespaceId };
+  }
+  return null;
+}
+
 function getUpstashConfig() {
   let url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   let token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -392,6 +412,20 @@ function isVercelRuntime() {
 }
 
 export function getStorageStatus() {
+  if (getCloudflareD1Config()) {
+    return {
+      mode: "cloudflare_d1",
+      persistent: true,
+      label: "Cloudflare D1 SQL (Nube Permanente)",
+    };
+  }
+  if (getCloudflareKVConfig()) {
+    return {
+      mode: "cloudflare_kv",
+      persistent: true,
+      label: "Cloudflare KV (Nube Permanente)",
+    };
+  }
   if (getUpstashConfig()) {
     return {
       mode: "upstash_redis",
@@ -418,6 +452,95 @@ export function getStorageStatus() {
     persistent: false,
     label: "Cache Runtime Vercel + Respaldo Local en Navegador (IndexedDB)",
   };
+}
+
+let d1TableInitialized = false;
+
+async function cloudflareD1Query(sql, params = []) {
+  const cfg = getCloudflareD1Config();
+  if (!cfg) return null;
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${cfg.accountId}/d1/database/${cfg.databaseId}/query`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${cfg.apiToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sql, params }),
+    }
+  );
+  if (!res.ok) {
+    throw new Error(`Cloudflare D1 error ${res.status}: ${await res.text()}`);
+  }
+  const data = await res.json();
+  if (!data?.success) {
+    throw new Error(`Cloudflare D1 query failed: ${JSON.stringify(data?.errors || [])}`);
+  }
+  return data.result?.[0]?.results || [];
+}
+
+async function ensureD1Schema() {
+  if (d1TableInitialized) return;
+  await cloudflareD1Query(
+    "CREATE TABLE IF NOT EXISTS bazar_store (id TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at TEXT NOT NULL)"
+  );
+  d1TableInitialized = true;
+}
+
+async function cloudflareD1Get(key) {
+  await ensureD1Schema();
+  const rows = await cloudflareD1Query("SELECT data FROM bazar_store WHERE id = ? LIMIT 1", [key]);
+  const raw = rows?.[0]?.data;
+  return raw ? JSON.parse(raw) : null;
+}
+
+async function cloudflareD1Set(key, value) {
+  await ensureD1Schema();
+  await cloudflareD1Query(
+    "INSERT INTO bazar_store (id, data, updated_at) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at",
+    [key, JSON.stringify(value), new Date().toISOString()]
+  );
+  return true;
+}
+
+async function cloudflareKVGet(key) {
+  const cfg = getCloudflareKVConfig();
+  if (!cfg) return null;
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${cfg.accountId}/storage/kv/namespaces/${cfg.namespaceId}/values/${encodeURIComponent(
+      key
+    )}`,
+    {
+      headers: { Authorization: `Bearer ${cfg.apiToken}` },
+    }
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Cloudflare KV GET error ${res.status}: ${await res.text()}`);
+  }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+async function cloudflareKVSet(key, value, ttlSeconds = 0) {
+  const cfg = getCloudflareKVConfig();
+  if (!cfg) return false;
+  const query = ttlSeconds > 0 ? `?expiration_ttl=${Math.max(60, ttlSeconds)}` : "";
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${cfg.accountId}/storage/kv/namespaces/${cfg.namespaceId}/values/${encodeURIComponent(
+      key
+    )}${query}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${cfg.apiToken}`,
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+      body: JSON.stringify(value),
+    }
+  );
+  return res.ok;
 }
 
 async function upstashCommand(args) {
@@ -492,6 +615,42 @@ function normalizeDbShape(raw) {
 }
 
 export async function readDatabase() {
+  // 0A. Cloudflare D1
+  if (getCloudflareD1Config()) {
+    try {
+      const data = await cloudflareD1Get(DB_KEY);
+      if (data) {
+        const normalized = normalizeDbShape(data);
+        globalMemory.db = structuredClone(normalized);
+        return normalized;
+      }
+      const seeded = createInitialDatabase();
+      await cloudflareD1Set(DB_KEY, seeded);
+      globalMemory.db = structuredClone(seeded);
+      return seeded;
+    } catch (err) {
+      console.error("Error leyendo Cloudflare D1:", err);
+    }
+  }
+
+  // 0B. Cloudflare KV
+  if (getCloudflareKVConfig()) {
+    try {
+      const data = await cloudflareKVGet(DB_KEY);
+      if (data) {
+        const normalized = normalizeDbShape(data);
+        globalMemory.db = structuredClone(normalized);
+        return normalized;
+      }
+      const seeded = createInitialDatabase();
+      await cloudflareKVSet(DB_KEY, seeded);
+      globalMemory.db = structuredClone(seeded);
+      return seeded;
+    } catch (err) {
+      console.error("Error leyendo Cloudflare KV:", err);
+    }
+  }
+
   // 1. Upstash / Vercel KV
   if (getUpstashConfig()) {
     try {
@@ -645,7 +804,19 @@ export async function writeDatabase(db, options = {}) {
 
   globalMemory.db = structuredClone(cleanDb);
 
-  if (getUpstashConfig()) {
+  if (getCloudflareD1Config()) {
+    try {
+      await cloudflareD1Set(DB_KEY, cleanDb);
+    } catch (err) {
+      console.error("Error guardando en Cloudflare D1:", err);
+    }
+  } else if (getCloudflareKVConfig()) {
+    try {
+      await cloudflareKVSet(DB_KEY, cleanDb);
+    } catch (err) {
+      console.error("Error guardando en Cloudflare KV:", err);
+    }
+  } else if (getUpstashConfig()) {
     try {
       await upstashCommand(["SET", DB_KEY, JSON.stringify(cleanDb)]);
     } catch (err) {
@@ -882,7 +1053,21 @@ export async function recordOrder(orderInput, actor = "web") {
 export async function loadWhatsAppSession(sessionId) {
   const key = `${SESSION_PREFIX}${sessionId}`;
 
-  if (getUpstashConfig()) {
+  if (getCloudflareKVConfig()) {
+    try {
+      const data = await cloudflareKVGet(key);
+      if (data && typeof data === "object") return data;
+    } catch (err) {
+      console.error("Error leyendo sesión WhatsApp de Cloudflare KV:", err);
+    }
+  } else if (getCloudflareD1Config()) {
+    try {
+      const data = await cloudflareD1Get(key);
+      if (data && typeof data === "object") return data;
+    } catch (err) {
+      console.error("Error leyendo sesión WhatsApp de Cloudflare D1:", err);
+    }
+  } else if (getUpstashConfig()) {
     try {
       const raw = await upstashCommand(["GET", key]);
       if (raw) return typeof raw === "string" ? JSON.parse(raw) : raw;
@@ -910,7 +1095,19 @@ export async function saveWhatsAppSession(sessionId, sessionData) {
   const key = `${SESSION_PREFIX}${sessionId}`;
   globalMemory.sessions.set(sessionId, { data: sessionData, savedAt: Date.now() });
 
-  if (getUpstashConfig()) {
+  if (getCloudflareKVConfig()) {
+    try {
+      await cloudflareKVSet(key, sessionData, SESSION_TTL_SECONDS);
+    } catch (err) {
+      console.error("Error guardando sesión WhatsApp en Cloudflare KV:", err);
+    }
+  } else if (getCloudflareD1Config()) {
+    try {
+      await cloudflareD1Set(key, sessionData);
+    } catch (err) {
+      console.error("Error guardando sesión WhatsApp en Cloudflare D1:", err);
+    }
+  } else if (getUpstashConfig()) {
     try {
       await upstashCommand([
         "SET",
@@ -949,7 +1146,15 @@ export async function isMessageAlreadyProcessed(messageId) {
     globalMemory.processedMessages.delete(firstKey);
   }
 
-  if (getUpstashConfig()) {
+  if (getCloudflareKVConfig()) {
+    try {
+      const exists = await cloudflareKVGet(key);
+      if (exists) return true;
+      await cloudflareKVSet(key, { seen: true }, 300);
+    } catch {
+      // Continuar
+    }
+  } else if (getUpstashConfig()) {
     try {
       const exists = await upstashCommand(["GET", key]);
       if (exists) return true;

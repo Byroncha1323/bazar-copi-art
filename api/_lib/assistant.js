@@ -82,6 +82,13 @@ export function getAIStatus() {
   if (process.env.GEMINI_API_KEY) {
     return { enabled: true, provider: "gemini", model: process.env.GEMINI_MODEL || "gemini-2.5-flash" };
   }
+  if (process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN) {
+    return {
+      enabled: true,
+      provider: "cloudflare_ai",
+      model: process.env.CLOUDFLARE_AI_MODEL || "@cf/meta/llama-3.1-8b-instruct",
+    };
+  }
   if (process.env.OPENAI_API_KEY) {
     return { enabled: true, provider: "openai", model: process.env.OPENAI_MODEL || "gpt-4o-mini" };
   }
@@ -433,6 +440,44 @@ async function callAIWithHistory({ userText, session, db, channel }) {
       const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!rawJson) return null;
       return JSON.parse(rawJson);
+    }
+
+    if (aiStatus.provider === "cloudflare_ai") {
+      const messages = [
+        { role: "system", content: systemPrompt },
+        ...history.map((h) => ({
+          role: h.role === "assistant" ? "assistant" : "user",
+          content: h.text,
+        })),
+        { role: "user", content: userText },
+      ];
+
+      const res = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/run/${aiStatus.model}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages,
+            temperature: 0.4,
+            max_tokens: 650,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        console.error("Error Cloudflare Workers AI:", res.status, await res.text());
+        return null;
+      }
+
+      const data = await res.json();
+      const rawText = String(data?.result?.response || "").trim();
+      if (!rawText) return null;
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      return jsonMatch ? JSON.parse(jsonMatch[0]) : { reply: rawText, intent: "other", orderReadyToSave: false };
     }
 
     if (aiStatus.provider === "openai") {

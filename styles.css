@@ -1326,6 +1326,12 @@ ul {
   color: var(--text-muted);
 }
 
+.turnstile-slot {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0;
+}
+
 /* ================= RESPONSIVE ================= */
 @media (max-width: 980px) {
   .hero-grid,

@@ -3,6 +3,12 @@ import {
   requireAdmin,
   updateAdminCredentials,
 } from "./_lib/auth.js";
+import {
+  checkRateLimit,
+  getClientIp,
+  getTurnstileSiteKey,
+  verifyTurnstileToken,
+} from "./_lib/security.js";
 
 function buildSessionCookie(token, maxAgeSeconds = 86400) {
   const secure = process.env.VERCEL ? "; Secure" : "";
@@ -11,25 +17,44 @@ function buildSessionCookie(token, maxAgeSeconds = 86400) {
 
 export async function GET(request) {
   const session = await requireAdmin(request);
+  const turnstileSiteKey = getTurnstileSiteKey();
   if (!session.ok) {
-    return Response.json({ authenticated: false }, { status: 200 });
+    return Response.json({ authenticated: false, turnstileSiteKey }, { status: 200 });
   }
   return Response.json({
     authenticated: true,
     username: session.username,
     usingDefaultPassword: session.usingDefaultPassword,
+    turnstileSiteKey,
   });
 }
 
 export async function POST(request) {
   try {
+    const ip = getClientIp(request);
+    const rate = checkRateLimit("auth_login", ip, 10, 5 * 60_000);
+    if (!rate.allowed) {
+      return Response.json(
+        {
+          ok: false,
+          error: `Demasiados intentos. Espera ${rate.retryAfterSec} segundos antes de volver a intentar.`,
+        },
+        { status: 429 }
+      );
+    }
+
     let body;
     try {
       body = await request.json();
     } catch {
       return Response.json({ ok: false, error: "JSON inválido." }, { status: 400 });
     }
-    const { username, password } = body || {};
+    const { username, password, cfTurnstileToken } = body || {};
+
+    const turnstile = await verifyTurnstileToken(cfTurnstileToken, request);
+    if (!turnstile.ok) {
+      return Response.json({ ok: false, error: turnstile.error }, { status: 403 });
+    }
 
     if (!username || !password) {
       return Response.json(
