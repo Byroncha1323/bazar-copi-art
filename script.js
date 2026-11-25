@@ -816,7 +816,7 @@ document.addEventListener("DOMContentLoaded", () => {
           freeChatSession = data.session || freeChatSession;
           let html = formatWhatsAppTextToHTML(data.reply);
           if (data.savedOrder?.id) {
-            html += `<br><span class="chat-order-badge">✅ Pedido registrado en CRM: ${escapeHTML(
+            html += `<br><span class="chat-order-badge">✅ Pedido registrado: ${escapeHTML(
               data.savedOrder.id
             )}</span>`;
           }
@@ -905,4 +905,68 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     });
   }
+
+  /* 9. Accesibilidad: Tamaño de letra grande + Aviso de Cookies + Términos y Condiciones */
+  const a11yToggle = document.getElementById("a11yFontToggle");
+  const LARGE_TEXT_KEY = "bazar_large_text";
+
+  function applyLargeText(enabled) {
+    document.documentElement.classList.toggle("large-text", enabled);
+    if (a11yToggle) {
+      a11yToggle.setAttribute("aria-pressed", String(enabled));
+      a11yToggle.textContent = enabled ? "Aa-" : "Aa+";
+    }
+  }
+
+  if (localStorage.getItem(LARGE_TEXT_KEY) === "1") {
+    applyLargeText(true);
+  }
+
+  a11yToggle?.addEventListener("click", () => {
+    const next = !document.documentElement.classList.contains("large-text");
+    localStorage.setItem(LARGE_TEXT_KEY, next ? "1" : "0");
+    applyLargeText(next);
+  });
+
+  const cookieBanner = document.getElementById("cookieBanner");
+  const COOKIE_KEY = "bazar_cookie_consent";
+
+  if (cookieBanner && !localStorage.getItem(COOKIE_KEY)) {
+    cookieBanner.style.display = "flex";
+  }
+
+  function saveCookieChoice(choice) {
+    localStorage.setItem(COOKIE_KEY, choice);
+    if (cookieBanner) cookieBanner.style.display = "none";
+  }
+
+  document.getElementById("acceptAllCookiesBtn")?.addEventListener("click", () => {
+    saveCookieChoice("all");
+  });
+  document.getElementById("acceptEssentialCookiesBtn")?.addEventListener("click", () => {
+    saveCookieChoice("essential");
+  });
+
+  const legalModal = document.getElementById("legalModal");
+  function openLegalModal() {
+    legalModal?.classList.add("open");
+    document.getElementById("closeLegalModalBtn")?.focus();
+  }
+  function closeLegalModal() {
+    legalModal?.classList.remove("open");
+  }
+
+  document.getElementById("openTermsBtn")?.addEventListener("click", openLegalModal);
+  document.getElementById("openCookiesBtn")?.addEventListener("click", openLegalModal);
+  document.getElementById("openCookiesFromBannerBtn")?.addEventListener("click", openLegalModal);
+  document.getElementById("closeLegalModalBtn")?.addEventListener("click", closeLegalModal);
+  document.getElementById("confirmLegalModalBtn")?.addEventListener("click", closeLegalModal);
+  legalModal?.addEventListener("click", (e) => {
+    if (e.target === legalModal) closeLegalModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && legalModal?.classList.contains("open")) {
+      closeLegalModal();
+    }
+  });
 });

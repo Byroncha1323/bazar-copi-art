@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="admin.css" />
 </head>
 <body class="admin-body">
+  <a href="#panelPrincipal" class="skip-link">Saltar al contenido principal</a>
 
   <!-- ================= PANTALLA DE INGRESO ================= -->
   <section class="login-screen" id="loginView">
@@ -42,6 +43,7 @@
 
       <div class="login-footer">
         <a href="index.html">← Volver a la página para clientes</a>
+        <p style="margin-top:8px;font-size:0.78rem;color:var(--text-muted);">Usamos solo cookies necesarias para mantener tu sesión segura.</p>
       </div>
     </div>
   </section>
@@ -59,6 +61,7 @@
 
       <div class="admin-topbar-actions">
         <span class="sync-pill" id="syncStatusPill">● Todo guardado</span>
+        <button type="button" class="btn btn-outline btn-sm nav-a11y-btn" id="a11yFontToggle" aria-pressed="false" title="Aumentar o reducir tamaño de letra">Aa+</button>
         <button type="button" class="btn btn-outline btn-sm" id="syncNowBtn">↻ Actualizar</button>
         <button type="button" class="btn btn-primary btn-sm" id="downloadXlsxTopBtn">📥 Bajar Excel</button>
         <button type="button" class="btn btn-outline btn-sm" id="quickHelpBtn">❓ Ayuda</button>
@@ -76,7 +79,7 @@
       <button type="button" class="admin-tab-btn" data-tab="respaldos">⚙️ Copias y WhatsApp</button>
     </nav>
 
-    <main class="admin-main">
+    <main class="admin-main" id="panelPrincipal">
       <div class="security-alert" id="defaultPassBanner" style="display: none;">
         <div>
           <strong>⚠️ Cambia tu contraseña:</strong> Estás usando la clave temporal inicial. Cámbiala por la tuya propia en 1 minuto.

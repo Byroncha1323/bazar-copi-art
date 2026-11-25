@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <a href="#contenidoPrincipal" class="skip-link">Saltar al contenido principal</a>
 
   <!-- ================= HEADER / NAVBAR ================= -->
   <header class="site-header" id="top">
@@ -28,12 +29,15 @@
 
       <nav class="main-nav" id="mainNav" aria-label="Navegación principal">
         <a href="#nosotros" class="nav-link">Nosotros</a>
-        <a href="#servicios" class="nav-link">Servicios y Precios</a>
+        <a href="#servicios" class="nav-link">Precios</a>
         <a href="#calidad" class="nav-link">Calidad</a>
-        <a href="#preguntas" class="nav-link">Asistente FAQ</a>
+        <a href="#preguntas" class="nav-link">Preguntas</a>
         <a href="#contacto" class="nav-link">Contacto</a>
+        <button type="button" class="btn btn-outline btn-sm nav-a11y-btn" id="a11yFontToggle" aria-pressed="false" title="Aumentar o reducir tamaño de letra">
+          Aa+
+        </button>
         <a href="admin.html" class="btn btn-outline btn-sm nav-admin-btn">
-          🔐 Panel Admin
+          🔐 Mi Negocio
         </a>
         <a
           href="https://wa.me/50664760290"
@@ -60,7 +64,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="contenidoPrincipal">
     <!-- ================= HERO ================= -->
     <section class="hero">
       <div class="container hero-grid">
@@ -357,12 +361,12 @@
             </div>
             <div class="kpi-card">
               <span class="kpi-value">85%</span>
-              <h4>Satisfacción del Cliente (CSAT)</h4>
+              <h4>Clientes Satisfechos</h4>
               <p>Meta de calificación buena y excelente en cada experiencia de compra.</p>
             </div>
             <div class="kpi-card">
               <span class="kpi-value">90%</span>
-              <h4>Resolución al 1er Contacto</h4>
+              <h4>Solución desde el Primer Mensaje</h4>
               <p>Atención completa desde tu primera consulta sin vueltas innecesarias.</p>
             </div>
             <div class="kpi-card">
@@ -430,15 +434,15 @@
       <div class="container">
         <div class="section-header">
           <span class="section-eyebrow">Respuestas al Instante</span>
-          <h2>Asistente Virtual de Preguntas Frecuentes</h2>
-          <p>Selecciona cualquiera de las preguntas frecuentes o escribe tu consulta. Si necesitas atención personalizada, nuestro asistente te conectará directo con WhatsApp.</p>
+          <h2>Preguntas y Pedidos Fáciles</h2>
+          <p>Elige una pregunta rápida o escribe lo que necesitas abajo. Si quieres, aquí mismo dejamos tu pedido listo para WhatsApp.</p>
         </div>
 
         <div class="chatbot-wrapper">
           <!-- Columna izquierda: botones de preguntas rápidas + Bot paso a paso -->
           <div class="faq-quick-panel">
-            <h3>Asistente y Pedidos</h3>
-            <p class="faq-panel-desc">Inicia un pedido guiado paso a paso (igual a nuestro bot de WhatsApp) o consulta una pregunta frecuente:</p>
+            <h3>Opciones Rápidas</h3>
+            <p class="faq-panel-desc">Toca "Hacer Pedido Paso a Paso" para pedir guiado, o elige una pregunta común:</p>
             <div class="faq-chips" id="faqChips">
               <button type="button" class="faq-chip faq-chip-order" id="startStepOrderBtn">
                 📝 Hacer Pedido Paso a Paso (Nombre → Datos → Menú 1 al 9)
@@ -474,7 +478,7 @@
                 <img src="assets/logo-copiart.jpg" alt="Asistente Bazar Copi Art" class="chatbot-avatar" />
                 <div>
                   <strong>Asistente Copi Art</strong>
-                  <span class="chatbot-status">En línea · Asistente IA y Pedidos</span>
+                  <span class="chatbot-status">En línea · Te respondemos al instante</span>
                 </div>
               </div>
               <button type="button" class="chatbot-reset" id="chatbotReset" title="Reiniciar conversación">
@@ -620,12 +624,64 @@
         <a href="#servicios">Precios</a>
         <a href="#calidad">Calidad</a>
         <a href="#contacto">Contacto</a>
-        <a href="admin.html">Panel Admin (CRM)</a>
+        <a href="admin.html">Entrar a Mi Negocio</a>
+        <button type="button" class="footer-legal-btn" id="openTermsBtn">Términos y Condiciones</button>
+        <button type="button" class="footer-legal-btn" id="openCookiesBtn">Privacidad y Cookies</button>
       </div>
 
       <p class="footer-copy">&copy; <span id="currentYear"></span> Bazar Copi Art. Todos los derechos reservados.</p>
     </div>
   </footer>
+
+  <!-- Aviso sencillo de Cookies -->
+  <aside class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Aviso sobre cookies" style="display: none;">
+    <div class="cookie-banner-text">
+      <strong>🍪 Aviso sobre Cookies y Privacidad:</strong> Usamos únicamente cookies necesarias para que esta página y tu asistente funcionen bien. No vendemos tus datos ni mostramos anuncios.
+    </div>
+    <div class="cookie-banner-actions">
+      <button type="button" class="btn btn-primary btn-sm" id="acceptAllCookiesBtn">Aceptar</button>
+      <button type="button" class="btn btn-outline btn-sm" id="acceptEssentialCookiesBtn">Solo necesarias</button>
+      <button type="button" class="cookie-link-btn" id="openCookiesFromBannerBtn">Leer aviso</button>
+    </div>
+  </aside>
+
+  <!-- Ventana de Términos, Privacidad y Cookies -->
+  <div class="legal-modal-backdrop" id="legalModal" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle">
+    <div class="legal-modal-card">
+      <div class="legal-modal-header">
+        <h3 id="legalModalTitle">Términos, Condiciones y Cookies</h3>
+        <button type="button" class="legal-modal-close" id="closeLegalModalBtn" aria-label="Cerrar aviso">&times;</button>
+      </div>
+      <div class="legal-modal-body">
+        <section class="legal-block">
+          <h4>1. Términos y Condiciones de Pedidos</h4>
+          <ul>
+            <li><strong>Precios en colones (₡):</strong> Los precios mostrados en la página aplican para trabajos estándar. Los trabajos personalizados (tarjetas, facturas, papelería personalizada o tamaños especiales de emplasticado) se confirman en precio final y tiempo de entrega por WhatsApp (<strong>+506 6476-0290</strong>) antes de prepararse.</li>
+            <li><strong>Pedidos por encargo y retiros:</strong> Los pedidos se preparan para retirar en el negocio dentro del horario de atención (Lunes a Viernes de 6:30 a.m. a 4:30 p.m., Sábados de 9:00 a.m. a 1:00 p.m.). Los domingos recibimos encargos para retirar el lunes.</li>
+            <li><strong>Archivos para imprimir:</strong> Los documentos e imágenes que nos envíes se usan únicamente para realizar tu impresión o trabajo solicitado.</li>
+            <li><strong>Formas de pago:</strong> Aceptamos <strong>SINPE Móvil</strong> y <strong>Efectivo</strong>.</li>
+          </ul>
+        </section>
+
+        <section class="legal-block">
+          <h4>2. Privacidad y Uso de tus Datos</h4>
+          <p>Los datos que escribes en el formulario o en el asistente (nombre, teléfono, correo y detalles del pedido) se utilizan únicamente para preparar, cotizar y entregarte tu pedido. No compartimos ni vendemos tu información con terceros.</p>
+        </section>
+
+        <section class="legal-block">
+          <h4>3. Política de Cookies y Guardado en el Navegador</h4>
+          <ul>
+            <li><strong>Cookies necesarias:</strong> Permiten recordar si ya aceptaste este aviso, mantener el tamaño de letra cómoda y proteger los formularios contra envíos automáticos indebidos.</li>
+            <li><strong>Sin rastreo publicitario:</strong> Esta página no utiliza cookies de publicidad ni rastreadores comerciales.</li>
+            <li><strong>Cambiar tu preferencia:</strong> Puedes revisar o cambiar tu preferencia de cookies en cualquier momento desde el enlace <em>Privacidad y Cookies</em> al final de la página.</li>
+          </ul>
+        </section>
+      </div>
+      <div class="legal-modal-footer">
+        <button type="button" class="btn btn-primary btn-sm" id="confirmLegalModalBtn">¡Entendido!</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Botón flotante de WhatsApp -->
   <a

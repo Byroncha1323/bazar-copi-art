@@ -52,6 +52,31 @@ html {
   scroll-padding-top: 84px;
 }
 
+html.large-text {
+  font-size: 118%;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 8px;
+  z-index: 999;
+  background: var(--brand-plum);
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  left: 16px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
 body {
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   background-color: var(--bg-main);
@@ -1332,6 +1357,147 @@ ul {
   margin: 4px 0;
 }
 
+.nav-a11y-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  border-color: var(--border-soft);
+  color: var(--brand-plum);
+  padding-inline: 12px;
+}
+
+.footer-legal-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.footer-legal-btn:hover {
+  color: var(--accent-gold);
+}
+
+/* Aviso de Cookies accesible */
+.cookie-banner {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 95;
+  width: min(500px, calc(100% - 100px));
+  background: var(--bg-surface);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cookie-banner-text {
+  font-size: 0.88rem;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.cookie-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cookie-link-btn {
+  background: none;
+  border: none;
+  color: var(--brand-plum);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Modal de Términos y Cookies */
+.legal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(45, 35, 41, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.legal-modal-backdrop.open {
+  display: flex;
+}
+
+.legal-modal-card {
+  width: min(640px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.legal-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.legal-modal-header h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.65rem;
+  color: var(--brand-plum);
+}
+
+.legal-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-main);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.legal-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 0.92rem;
+  color: var(--text-main);
+}
+
+.legal-block h4 {
+  color: var(--brand-plum);
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+.legal-block ul {
+  list-style: disc;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legal-modal-footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* ================= RESPONSIVE ================= */
 @media (max-width: 980px) {
   .hero-grid,
@@ -1413,5 +1579,12 @@ ul {
   .footer-inner {
     flex-direction: column;
     text-align: center;
+  }
+
+  .cookie-banner {
+    left: 12px;
+    right: 12px;
+    bottom: 86px;
+    width: auto;
   }
 }

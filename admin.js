@@ -96,9 +96,8 @@ async function saveLocalMirror(state) {
     });
     const label = el("localMirrorText");
     if (label) {
-      label.textContent = `Copia de seguridad en esta computadora: guardada a las ${new Date().toLocaleTimeString(
-        "es-CR"
-      )}.`;
+      const hora = new Date().toLocaleTimeString("es-CR").replace(/\.$/, "");
+      label.textContent = `Copia de seguridad en esta computadora: guardada a las ${hora}.`;
     }
   } catch {
     // Silenciar si IndexedDB está bloqueado en modo privado
@@ -1742,5 +1741,35 @@ el("passwordForm")?.addEventListener("submit", async (e) => {
     showToast(err.message);
   }
 });
+
+// ================= ACCESIBILIDAD: TAMAÑO DE LETRA =================
+(() => {
+  const fontBtn = el("a11yFontToggle");
+  if (!fontBtn) return;
+
+  const applyLargeText = (enabled) => {
+    document.documentElement.classList.toggle("large-text", enabled);
+    fontBtn.setAttribute("aria-pressed", enabled ? "true" : "false");
+    fontBtn.textContent = enabled ? "Aa-" : "Aa+";
+  };
+
+  let isLarge = false;
+  try {
+    isLarge = localStorage.getItem("bazar_large_text") === "1";
+  } catch {
+    isLarge = false;
+  }
+  applyLargeText(isLarge);
+
+  fontBtn.addEventListener("click", () => {
+    isLarge = !isLarge;
+    applyLargeText(isLarge);
+    try {
+      localStorage.setItem("bazar_large_text", isLarge ? "1" : "0");
+    } catch {
+      // Ignorar si almacenamiento local está bloqueado
+    }
+  });
+})();
 
 checkInitialAuth();
