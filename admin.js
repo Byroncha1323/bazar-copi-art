@@ -96,7 +96,7 @@ async function saveLocalMirror(state) {
     });
     const label = el("localMirrorText");
     if (label) {
-      label.textContent = `Espejo local en navegador (IndexedDB): guardado ${new Date().toLocaleTimeString(
+      label.textContent = `Copia de seguridad en esta computadora: guardada a las ${new Date().toLocaleTimeString(
         "es-CR"
       )}.`;
     }
@@ -324,7 +324,7 @@ function updateSyncPill(ok) {
   const persistent = dbState?.storageStatus?.persistent;
   pill.textContent = persistent
     ? "● Todo guardado al día"
-    : "● Guardado local + nube";
+    : "● Guardado automáticamente";
   pill.classList.toggle("warn", !persistent);
 }
 
@@ -381,14 +381,14 @@ el("dayCloseBtn")?.addEventListener("click", async () => {
 el("quickInvBtn")?.addEventListener("click", () => activateTab("inventario"));
 el("quickHelpBtn")?.addEventListener("click", () => {
   openModal(
-    "❓ Guía Rápida de Uso (1 minuto)",
+    "❓ Guía Fácil de Uso",
     `
-      <div class="full-span" style="display:flex;flex-direction:column;gap:10px;font-size:0.9rem;">
-        <div class="guide-step"><strong>1. Pedidos automáticos:</strong> Cada pedido que entra por la web o WhatsApp aparece solo en <em>📑 CRM Excel</em>.</div>
-        <div class="guide-step"><strong>2. Un clic para avanzar:</strong> Usa <em>✅ Listo</em> para marcar que está terminado y <em>💬 WA</em> para avisarle al cliente por WhatsApp.</div>
-        <div class="guide-step"><strong>3. Ventas en tienda:</strong> Pulsa <em>+ Registrar Venta</em> y elige el producto para rebajar el stock automáticamente.</div>
-        <div class="guide-step"><strong>4. Stock y Máquinas:</strong> En <em>📦 Inventario</em> usa <strong>+ / -</strong> para sumar o restar existencias, y en <em>🖨️ Máquinas</em> lleva tinta y mantenimientos.</div>
-        <div class="guide-step"><strong>5. Al cerrar el día:</strong> Pulsa <strong>📊 Cierre del Día</strong> en el Resumen; guarda una copia de seguridad y descarga tu Excel completo.</div>
+      <div class="full-span" style="display:flex;flex-direction:column;gap:10px;font-size:0.92rem;">
+        <div class="guide-step"><strong>1. Pedidos que llegan solos:</strong> Cada vez que un cliente pide desde la página, aparece automáticamente en <em>📋 Ventas y Pedidos</em>.</div>
+        <div class="guide-step"><strong>2. Avisar al cliente con 1 clic:</strong> Toca <em>✅ Listo</em> cuando termines el trabajo y luego <em>💬 WhatsApp</em> para mandarle el aviso ya escrito.</div>
+        <div class="guide-step"><strong>3. Ventas en el mostrador:</strong> En <em>🏠 Inicio</em> toca <em>+ Apuntar Venta en Tienda</em> y elige el producto para que se descuente del inventario.</div>
+        <div class="guide-step"><strong>4. Inventario y Máquinas:</strong> En <em>📦 Inventario</em> usa <strong>+ / -</strong> para sumar o restar cantidad, y en <em>🖨️ Máquinas</em> anota tintas y mantenimientos.</div>
+        <div class="guide-step"><strong>5. Al cerrar el día:</strong> Toca <strong>📊 Cierre del Día (Guardar + Excel)</strong>; guarda una copia de seguridad y descarga tu Excel completo del día.</div>
       </div>
     `,
     async () => closeModal(),
@@ -437,37 +437,37 @@ function renderDashboard() {
   if (crmTabBtn) {
     crmTabBtn.textContent =
       pendingOrders > 0
-        ? `📑 CRM Excel (${pendingOrders} pend.)`
-        : "📑 CRM Excel (Ventas y Pedidos)";
+        ? `📋 Ventas y Pedidos (${pendingOrders})`
+        : "📋 Ventas y Pedidos";
   }
 
   el("kpiStatsGrid").innerHTML = `
     <div class="stat-card">
-      <div class="stat-label">Ventas Hoy / Total CRM</div>
+      <div class="stat-label">Ventas de Hoy</div>
       <div class="stat-value">${formatColones(todaySales)}</div>
-      <div class="stat-sub">Acumulado: ${formatColones(totalSales)} (${orders.length} pedidos)</div>
+      <div class="stat-sub">Total acumulado: ${formatColones(totalSales)} (${orders.length} pedidos)</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Pedidos Pendientes</div>
+      <div class="stat-label">Pedidos Por Atender</div>
       <div class="stat-value">${pendingOrders}</div>
-      <div class="stat-sub">En espera o en preparación</div>
+      <div class="stat-sub">Pendientes o en preparación</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Alertas de Stock Bajo</div>
+      <div class="stat-label">Productos por Acabarse</div>
       <div class="stat-value">${lowStock.length}</div>
-      <div class="stat-sub">De ${inventory.length} artículos en inventario</div>
+      <div class="stat-sub">De ${inventory.length} productos en total</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Máquinas Operativas</div>
+      <div class="stat-label">Máquinas Trabajando</div>
       <div class="stat-value">${activeMachines} / ${machines.length}</div>
-      <div class="stat-sub">Equipos de copiado, impresión y acabado</div>
+      <div class="stat-sub">Fotocopiadoras, impresoras y equipos</div>
     </div>
   `;
 
   const recentRows = orders.slice(0, 6);
   el("recentOrdersBody").innerHTML =
     recentRows.length === 0
-      ? `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:18px;">Aún no hay pedidos registrados. Cuando un cliente compre en la web o WhatsApp aparecerá aquí automáticamente.</td></tr>`
+      ? `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:18px;">Todavía no hay pedidos. Apenas un cliente pida desde la página web, aparecerá aquí solo.</td></tr>`
       : recentRows
           .map(
             (o) => `
@@ -539,7 +539,7 @@ function renderCRMOrders() {
 
   const tbody = el("crmOrdersBody");
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:20px;">No hay pedidos con los filtros actuales.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">No hay pedidos con ese filtro o búsqueda.</td></tr>`;
     return;
   }
 
@@ -553,7 +553,7 @@ function renderCRMOrders() {
           : `¡Hola ${o.customerName}! Te saludamos de Bazar Copi Art sobre tu pedido ${o.id} (${o.serviceName}). Estado actual: ${o.status}.`;
       const waMsg = encodeURIComponent(readyText);
       const waBtn = waDigits
-        ? `<a class="icon-btn wa" href="https://wa.me/${waDigits}?text=${waMsg}" target="_blank" rel="noopener noreferrer" title="Enviar mensaje de WhatsApp al cliente">💬 WA</a>`
+        ? `<a class="icon-btn wa" href="https://wa.me/${waDigits}?text=${waMsg}" target="_blank" rel="noopener noreferrer" title="Enviar mensaje de WhatsApp al cliente">💬 WhatsApp</a>`
         : "";
       const quickFlowBtn =
         o.status === "Pendiente" || o.status === "En Proceso"
@@ -564,13 +564,19 @@ function renderCRMOrders() {
 
       return `
         <tr data-order-id="${escapeHTML(o.id)}">
-          <td><strong>${escapeHTML(o.id)}</strong></td>
-          <td style="white-space:nowrap;">${escapeHTML(formatDateTime(o.createdAt))}</td>
-          <td><span class="badge badge-plum">${escapeHTML(sourceLabel(o.source))}</span></td>
-          <td>${escapeHTML(o.customerName)}</td>
-          <td>${escapeHTML(o.phone || "—")}</td>
-          <td>${escapeHTML(o.serviceName)}</td>
-          <td style="min-width:180px;">${escapeHTML(o.details)}</td>
+          <td>
+            <strong>${escapeHTML(o.id)}</strong>
+            <div style="font-size:0.72rem;color:var(--text-muted);">${escapeHTML(sourceLabel(o.source))}</div>
+          </td>
+          <td style="white-space:nowrap;font-size:0.8rem;">${escapeHTML(formatDateTime(o.createdAt))}</td>
+          <td>
+            <strong>${escapeHTML(o.customerName)}</strong>
+            ${o.phone ? `<div style="font-size:0.75rem;color:var(--text-muted);">📱 ${escapeHTML(o.phone)}</div>` : ""}
+          </td>
+          <td style="min-width:170px;">
+            <strong>${escapeHTML(o.serviceName)}</strong>
+            ${o.details ? `<div style="font-size:0.76rem;color:var(--text-muted);">${escapeHTML(o.details)}</div>` : ""}
+          </td>
           <td>${Number(o.quantity) || 1}</td>
           <td>
             <input type="number" class="cell-input cell-input-sm js-order-total" value="${Number(o.total) || 0}" min="0" step="50" />
@@ -594,7 +600,7 @@ function renderCRMOrders() {
               ${quickFlowBtn}
               ${waBtn}
               <button type="button" class="icon-btn js-edit-order">Editar</button>
-              <button type="button" class="icon-btn danger js-del-order">✕</button>
+              <button type="button" class="icon-btn danger js-del-order" title="Borrar">✕</button>
             </div>
           </td>
         </tr>
@@ -666,7 +672,7 @@ function renderInventory() {
 
   const tbody = el("inventoryBody");
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:20px;">No hay artículos que coincidan.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px;">No hay productos con ese nombre o categoría.</td></tr>`;
     return;
   }
 
@@ -678,33 +684,31 @@ function renderInventory() {
         stock <= 0
           ? `<span class="badge badge-danger">Agotado</span>`
           : stock <= min
-          ? `<span class="badge badge-warn">Stock Bajo</span>`
+          ? `<span class="badge badge-warn">Por acabarse</span>`
           : `<span class="badge badge-ok">Disponible</span>`;
 
       return `
         <tr data-inv-id="${escapeHTML(i.id)}">
-          <td><strong>${escapeHTML(i.sku)}</strong></td>
           <td>
             <strong>${escapeHTML(i.name)}</strong>
-            ${i.notes ? `<div style="font-size:0.76rem;color:var(--text-muted);">${escapeHTML(i.notes)}</div>` : ""}
+            <div style="font-size:0.74rem;color:var(--text-muted);">Cód: ${escapeHTML(i.sku)}${i.notes ? ` · ${escapeHTML(i.notes)}` : ""}</div>
           </td>
           <td>${escapeHTML(i.category)}</td>
-          <td>${escapeHTML(i.type)}</td>
           <td>
             <div class="stock-stepper">
               <button type="button" class="step-btn js-stock-minus" title="Restar 1">-</button>
-              <strong>${stock}</strong> <span style="font-size:0.78rem;color:var(--text-muted);">${escapeHTML(i.unit)}</span>
+              <strong>${stock}</strong> <span style="font-size:0.76rem;color:var(--text-muted);">${escapeHTML(i.unit)}</span>
               <button type="button" class="step-btn js-stock-plus" title="Sumar 1">+</button>
             </div>
           </td>
           <td>${min}</td>
           <td>${badge}</td>
           <td>${formatColones(i.costPrice)}</td>
-          <td><strong>${i.salePrice > 0 ? formatColones(i.salePrice) : "Interno"}</strong></td>
+          <td><strong>${i.salePrice > 0 ? formatColones(i.salePrice) : "Uso interno"}</strong></td>
           <td>
             <div class="row-actions">
               <button type="button" class="icon-btn js-edit-inv">Editar</button>
-              <button type="button" class="icon-btn danger js-del-inv">✕</button>
+              <button type="button" class="icon-btn danger js-del-inv" title="Borrar">✕</button>
             </div>
           </td>
         </tr>
@@ -757,7 +761,7 @@ function renderCustomers() {
 
   const tbody = el("customersBody");
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:20px;">Aún no hay clientes registrados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px;">Todavía no hay clientes anotados. Se irán guardando solos con cada pedido.</td></tr>`;
     return;
   }
 
@@ -766,24 +770,25 @@ function renderCustomers() {
       const seg = getCustomerSegment(c);
       const waDigits = formatWaCustomerPhone(c.phone);
       const waBtn = waDigits
-        ? `<a class="icon-btn wa" href="https://wa.me/${waDigits}" target="_blank" rel="noopener noreferrer">💬 WA</a>`
+        ? `<a class="icon-btn wa" href="https://wa.me/${waDigits}" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>`
         : "";
       return `
         <tr data-cust-id="${escapeHTML(c.id)}">
-          <td><strong>${escapeHTML(c.id)}</strong></td>
-          <td><strong>${escapeHTML(c.name)}</strong></td>
+          <td>
+            <strong>${escapeHTML(c.name)}</strong>
+            <div style="font-size:0.74rem;color:var(--text-muted);">Por: ${escapeHTML(sourceLabel(c.lastChannel || c.source))}</div>
+          </td>
           <td>${escapeHTML(c.phone || "—")}</td>
           <td>${escapeHTML(c.email || "—")}</td>
-          <td><span class="badge badge-plum">${escapeHTML(sourceLabel(c.lastChannel || c.source))}</span></td>
           <td><span class="badge ${seg.badgeClass}">${seg.label}</span></td>
           <td>${Number(c.ordersCount) || 0}</td>
           <td><strong>${formatColones(c.totalSpent)}</strong></td>
-          <td>${escapeHTML(formatDateTime(c.lastOrderAt))}</td>
+          <td style="font-size:0.8rem;">${escapeHTML(formatDateTime(c.lastOrderAt))}</td>
           <td>
             <div class="row-actions">
               ${waBtn}
               <button type="button" class="icon-btn js-edit-cust">Editar</button>
-              <button type="button" class="icon-btn danger js-del-cust">✕</button>
+              <button type="button" class="icon-btn danger js-del-cust" title="Borrar">✕</button>
             </div>
           </td>
         </tr>
@@ -866,34 +871,36 @@ function renderMachines() {
   });
 }
 
-// ================= RESPALDOS, BD Y WHATSAPP IA =================
+// ================= COPIAS DE SEGURIDAD Y WHATSAPP =================
 function renderBackupsAndStatus() {
   const storage = dbState.storageStatus || {};
-  const ai = dbState.aiStatus || {};
 
-  el("storageModeText").innerHTML = `<strong>Motor BD activo:</strong> ${escapeHTML(
-    storage.label || "Desconocido"
-  )} · Última actualización: ${escapeHTML(formatDateTime(dbState.lastUpdatedAt))}`;
+  el("storageModeText").innerHTML = storage.persistent
+    ? `✅ <strong>Guardado en la nube activo:</strong> tus ventas, inventario y máquinas quedan guardados de forma segura (último cambio: ${escapeHTML(
+        formatDateTime(dbState.lastUpdatedAt)
+      )}).`
+    : `✅ <strong>Guardado automático activo:</strong> tus datos se respaldan en esta computadora mientras trabajas (último cambio: ${escapeHTML(
+        formatDateTime(dbState.lastUpdatedAt)
+      )}).`;
 
-  el("aiModeText").innerHTML = ai.enabled
-    ? `✅ <strong>IA Activa (${escapeHTML(ai.provider)} · ${escapeHTML(ai.model)}):</strong> Respondiendo con memoria conversacional.`
-    : `🧠 <strong>Motor Contextual Coherente activo:</strong> Responde preguntas, pedidos pegados y flujos con contexto. Para IA generativa libre agrega <code>GEMINI_API_KEY</code> en Vercel.`;
+  el("aiModeText").innerHTML =
+    `✅ <strong>Asistente de la página listo:</strong> responde precios, horarios, formas de pago y apunta pedidos solo.`;
 
   const backups = dbState.backups || [];
   el("backupsBody").innerHTML =
     backups.length === 0
-      ? `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px;">Aún no hay snapshots guardados.</td></tr>`
+      ? `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px;">Aquí aparecerán tus copias de seguridad automáticamente conforme hagas cambios.</td></tr>`
       : backups
           .map(
             (b) => `
           <tr data-bkp-id="${escapeHTML(b.id)}">
             <td style="white-space:nowrap;">${escapeHTML(formatDateTime(b.createdAt))}</td>
             <td>${escapeHTML(b.reason)}</td>
-            <td>${b.summary?.orders ?? 0} ped · ${b.summary?.inventory ?? 0} inv · ${b.summary?.machines ?? 0} maq</td>
+            <td>${b.summary?.orders ?? 0} ped · ${b.summary?.inventory ?? 0} prod · ${b.summary?.machines ?? 0} maq</td>
             <td>
               <div class="row-actions">
-                <button type="button" class="icon-btn js-restore-bkp">Restaurar</button>
-                <button type="button" class="icon-btn js-dl-bkp">⬇ JSON</button>
+                <button type="button" class="icon-btn js-restore-bkp">Volver a esta copia</button>
+                <button type="button" class="icon-btn js-dl-bkp">⬇ Bajar</button>
               </div>
             </td>
           </tr>
@@ -907,8 +914,8 @@ function renderBackupsAndStatus() {
     if (!bkp) return;
 
     row.querySelector(".js-restore-bkp")?.addEventListener("click", () => {
-      if (confirm(`¿Restaurar la base de datos al respaldo "${bkp.reason}" (${formatDateTime(bkp.createdAt)})?`)) {
-        mutateDb({ action: "restore_backup", backupId: id }, "Base de datos restaurada con éxito.");
+      if (confirm(`¿Seguro que quieres devolver los datos a como estaban el ${formatDateTime(bkp.createdAt)}?`)) {
+        mutateDb({ action: "restore_backup", backupId: id }, "¡Listo! Datos devueltos a esa copia.");
       }
     });
     row.querySelector(".js-dl-bkp")?.addEventListener("click", () => {
@@ -1183,10 +1190,10 @@ function openOrderModal(existing = null) {
     .join("");
 
   openModal(
-    existing ? `Editar Pedido ${o.id}` : "Registrar Venta / Pedido Manual",
+    existing ? `Editar Pedido ${o.id}` : "Apuntar Venta o Pedido Nuevo",
     `
       <div class="form-group">
-        <label>Cliente</label>
+        <label>Nombre del cliente</label>
         <input name="customerName" value="${escapeHTML(o.customerName)}" required />
       </div>
       <div class="form-group">
@@ -1198,9 +1205,9 @@ function openOrderModal(existing = null) {
         <input name="email" type="email" value="${escapeHTML(o.email)}" />
       </div>
       <div class="form-group">
-        <label>Vincular a artículo de stock (opcional)</label>
+        <label>Producto del inventario (opcional)</label>
         <select name="inventoryItemId" id="modalInvSelect">
-          <option value="">— Sin rebajar stock automático —</option>
+          <option value="">— No descontar del inventario —</option>
           ${invOptions}
         </select>
       </div>
@@ -1209,7 +1216,7 @@ function openOrderModal(existing = null) {
         <input name="serviceName" id="modalOrderService" value="${escapeHTML(o.serviceName)}" placeholder="Ej. Impresiones a color / Taza" required />
       </div>
       <div class="form-group full-span">
-        <label>Detalles</label>
+        <label>Detalles del pedido</label>
         <textarea name="details" rows="2">${escapeHTML(o.details)}</textarea>
       </div>
       <div class="form-group">
@@ -1221,7 +1228,7 @@ function openOrderModal(existing = null) {
         <input name="total" id="modalOrderTotal" type="number" min="0" step="50" value="${Number(o.total) || 0}" />
       </div>
       <div class="form-group">
-        <label>Método de pago</label>
+        <label>Forma de pago</label>
         <select name="paymentMethod">
           ${["Pendiente", "SINPE Móvil", "Efectivo"]
             .map((p) => `<option value="${p}" ${o.paymentMethod === p ? "selected" : ""}>${p}</option>`)
@@ -1229,7 +1236,7 @@ function openOrderModal(existing = null) {
         </select>
       </div>
       <div class="form-group">
-        <label>Estado</label>
+        <label>Estado del pedido</label>
         <select name="status">
           ${["Pendiente", "En Proceso", "Listo para Retiro", "Entregado", "Cancelado"]
             .map((s) => `<option value="${s}" ${o.status === s ? "selected" : ""}>${s}</option>`)
@@ -1241,13 +1248,13 @@ function openOrderModal(existing = null) {
           ? `<div class="form-group full-span">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                 <input type="checkbox" name="deductStock" value="1" checked />
-                Rebajar automáticamente del stock si se vinculó un artículo
+                Descontar automáticamente de la cantidad en inventario
               </label>
             </div>`
           : ""
       }
       <div class="form-group full-span">
-        <label>Notas internas</label>
+        <label>Notas (opcional)</label>
         <input name="notes" value="${escapeHTML(o.notes || "")}" />
       </div>
     `,
@@ -1271,7 +1278,7 @@ function openOrderModal(existing = null) {
             notes: fd.get("notes"),
           },
         },
-        existing ? "Pedido actualizado." : "Venta / pedido registrado en CRM."
+        existing ? "¡Pedido actualizado!" : "¡Venta apuntada en la lista y en el Excel!"
       );
       closeModal();
     }
@@ -1318,14 +1325,14 @@ function openInventoryModal(existing = null) {
   };
 
   openModal(
-    existing ? `Editar ${i.name}` : "Agregar Artículo al Inventario",
+    existing ? `Editar ${i.name}` : "Agregar Producto Nuevo",
     `
       <div class="form-group">
-        <label>SKU / Código</label>
-        <input name="sku" value="${escapeHTML(i.sku)}" placeholder="Ej. REG-TAZ2" />
+        <label>Código (opcional)</label>
+        <input name="sku" value="${escapeHTML(i.sku)}" placeholder="Ej. TAZA-01" />
       </div>
       <div class="form-group">
-        <label>Nombre del artículo / servicio</label>
+        <label>Nombre del producto o servicio</label>
         <input name="name" value="${escapeHTML(i.name)}" required />
       </div>
       <div class="form-group">
@@ -1345,11 +1352,11 @@ function openInventoryModal(existing = null) {
         </select>
       </div>
       <div class="form-group">
-        <label>Stock actual</label>
+        <label>Cantidad que tienes ahora</label>
         <input name="stock" type="number" min="0" value="${Number(i.stock) || 0}" required />
       </div>
       <div class="form-group">
-        <label>Stock mínimo alerta</label>
+        <label>Avisar cuando queden menos de</label>
         <input name="minStock" type="number" min="0" value="${Number(i.minStock) || 0}" required />
       </div>
       <div class="form-group">
@@ -1503,7 +1510,7 @@ function openMachineModal(existing = null) {
         <input name="maintenanceCost" type="number" min="0" value="${Number(m.maintenanceCost) || 0}" />
       </div>
       <div class="form-group full-span">
-        <label>Observaciones técnicas</label>
+        <label>Notas del equipo</label>
         <textarea name="notes" rows="2">${escapeHTML(m.notes || "")}</textarea>
       </div>
     `,
@@ -1539,7 +1546,7 @@ el("newMachineBtn")?.addEventListener("click", () => openMachineModal(null));
 
 // ================= RESPALDOS, CARPETA LOCAL, TESTER WHATSAPP Y CLAVE =================
 el("createBackupBtn")?.addEventListener("click", () => {
-  mutateDb({ action: "create_backup", reason: "Respaldo manual por administración" }, "Respaldo creado.");
+  mutateDb({ action: "create_backup", reason: "Copia manual guardada" }, "¡Copia de seguridad guardada!");
 });
 
 el("downloadBackupJsonBtn")?.addEventListener("click", () => {
@@ -1556,7 +1563,7 @@ el("downloadBackupJsonBtn")?.addEventListener("click", () => {
     new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }),
     `Bazar-Copi-Art-Respaldo-${dateStr}.json`
   );
-  showToast("Respaldo JSON descargado.");
+  showToast("Archivo de respaldo guardado en tus Descargas.");
 });
 
 el("restoreBackupJsonFile")?.addEventListener("change", async (e) => {
@@ -1567,26 +1574,26 @@ el("restoreBackupJsonFile")?.addEventListener("change", async (e) => {
     const snapshot = parsed.snapshotData || parsed;
     await mutateDb(
       { action: "restore_backup", snapshotData: snapshot },
-      "Respaldo JSON restaurado correctamente."
+      "¡Listo! Datos recuperados desde tu archivo."
     );
   } catch {
-    showToast("El archivo JSON no es un respaldo válido.");
+    showToast("Ese archivo no es un respaldo válido del bazar.");
   }
   e.target.value = "";
 });
 
 el("linkLocalFolderBtn")?.addEventListener("click", async () => {
   if (!window.showDirectoryPicker) {
-    showToast("Usa Google Chrome o Microsoft Edge para vincular una carpeta local de tu PC.");
+    showToast("Abre esta página en Google Chrome o Microsoft Edge para elegir una carpeta.");
     return;
   }
   try {
     localDirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-    el("localFolderStatus").textContent = `✅ Vinculada: ${localDirHandle.name}`;
+    el("localFolderStatus").textContent = `✅ Guardando en carpeta: ${localDirHandle.name}`;
     await writeToLinkedLocalFolder(dbState);
-    showToast(`Carpeta "${localDirHandle.name}" vinculada para respaldos y Excel automáticos.`);
+    showToast(`¡Listo! Todo se guardará también en la carpeta "${localDirHandle.name}".`);
   } catch {
-    showToast("Vinculación cancelada.");
+    showToast("No se eligió ninguna carpeta.");
   }
 });
 
@@ -1649,10 +1656,10 @@ el("waTesterForm")?.addEventListener("submit", async (e) => {
 
     if (data.savedOrder) {
       await refreshDatabase(true);
-      showToast(`Pedido de prueba ${data.savedOrder.id} registrado en CRM.`);
+      showToast(`Pedido de prueba ${data.savedOrder.id} guardado en Ventas y Pedidos.`);
     }
   } catch {
-    showToast("Error probando el simulador de WhatsApp.");
+    showToast("No se pudo probar el asistente en este momento.");
   }
 });
 

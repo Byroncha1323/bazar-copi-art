@@ -343,7 +343,7 @@
 .excel-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
 }
 
 .excel-table thead th {
@@ -351,13 +351,13 @@
   color: #ffffff;
   font-weight: 600;
   text-align: left;
-  padding: 11px 12px;
+  padding: 9px 10px;
   border-right: 1px solid rgba(255, 255, 255, 0.14);
   white-space: nowrap;
 }
 
 .excel-table tbody td {
-  padding: 10px 12px;
+  padding: 9px 10px;
   border-bottom: 1px solid var(--border-soft);
   border-right: 1px solid #f2eaef;
   vertical-align: middle;
