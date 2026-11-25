@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Administrativo &amp; CRM | Bazar Copi Art</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin-body">
+
+  <!-- ================= PANTALLA DE LOGIN ================= -->
+  <section class="login-screen" id="loginView">
+    <div class="login-card">
+      <div class="login-brand">
+        <img src="assets/logo-copiart.jpg" alt="Logo Bazar Copi Art" class="login-logo" />
+        <h1>Bazar Copi Art</h1>
+        <p>Panel de Administración, CRM Excel, Inventario y Máquinas</p>
+      </div>
+
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="loginUser">Usuario</label>
+          <input type="text" id="loginUser" placeholder="Ej. copiart" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="loginPass">Contraseña</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="password" id="loginPass" placeholder="Ingresa tu contraseña" autocomplete="current-password" style="flex: 1;" required />
+            <button type="button" class="btn btn-outline btn-sm" id="togglePassBtn" aria-label="Mostrar u ocultar contraseña" style="border-radius: 10px; padding-inline: 12px;">👁</button>
+          </div>
+        </div>
+        <div id="loginError" class="login-error" role="alert"></div>
+        <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
+          🔐 Ingresar al Panel
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <a href="index.html">← Volver a la página principal de Bazar Copi Art</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PANEL ADMINISTRATIVO PRINCIPAL ================= -->
+  <div class="admin-shell" id="adminShell" style="display: none;">
+    <header class="admin-topbar">
+      <div class="admin-topbar-brand">
+        <img src="assets/logo-copiart.jpg" alt="Logo Bazar Copi Art" />
+        <div>
+          <div class="admin-topbar-title">Bazar Copi Art · Control Empresarial</div>
+          <div class="admin-topbar-sub" id="topbarSubtitle">CRM Excel · Base de Datos · Inventario · Máquinas</div>
+        </div>
+      </div>
+
+      <div class="admin-topbar-actions">
+        <span class="sync-pill" id="syncStatusPill">● Sincronizado</span>
+        <button type="button" class="btn btn-outline btn-sm" id="syncNowBtn">↻ Sincronizar</button>
+        <button type="button" class="btn btn-primary btn-sm" id="downloadXlsxTopBtn">📥 Descargar Excel (.xlsx)</button>
+        <a href="index.html" class="btn btn-outline btn-sm">🌐 Ver Web</a>
+        <button type="button" class="btn btn-outline btn-sm" id="logoutBtn">Salir</button>
+      </div>
+    </header>
+
+    <nav class="admin-tabs-bar" role="tablist" aria-label="Secciones del panel administrativo">
+      <button type="button" class="admin-tab-btn active" data-tab="resumen">📊 Resumen General</button>
+      <button type="button" class="admin-tab-btn" data-tab="crm">📑 CRM Excel (Ventas y Pedidos)</button>
+      <button type="button" class="admin-tab-btn" data-tab="inventario">📦 Inventario y Stock</button>
+      <button type="button" class="admin-tab-btn" data-tab="clientes">👥 Clientes</button>
+      <button type="button" class="admin-tab-btn" data-tab="maquinas">🖨️ Máquinas y Equipos</button>
+      <button type="button" class="admin-tab-btn" data-tab="respaldos">💾 Respaldos y WhatsApp</button>
+    </nav>
+
+    <main class="admin-main">
+      <div class="security-alert" id="defaultPassBanner" style="display: none;">
+        <div>
+          <strong>⚠️ Contraseña inicial activa:</strong> Por seguridad, cambia tu contraseña en la pestaña
+          <strong>"💾 Respaldos y WhatsApp"</strong> cuando ingreses por primera vez.
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="goToSecurityBtn">Cambiar contraseña</button>
+      </div>
+
+      <!-- TAB 1: RESUMEN GENERAL -->
+      <section class="admin-panel active" id="tab-resumen">
+        <div class="panel-card quick-actions-card">
+          <div class="quick-actions-row">
+            <div>
+              <strong style="color: var(--brand-plum); font-size: 1rem;">¿Qué deseas hacer hoy?</strong>
+              <div class="admin-topbar-sub">Atajos rápidos para llevar el control diario sin complicaciones</div>
+            </div>
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary btn-sm" id="quickNewOrderBtn">+ Registrar Venta</button>
+              <button type="button" class="btn btn-whatsapp btn-sm" id="quickExportXlsxBtn">📥 Descargar Mi Excel</button>
+              <button type="button" class="btn btn-outline btn-sm" id="quickBackupBtn">💾 Hacer Respaldo</button>
+              <button type="button" class="btn btn-outline btn-sm" id="quickInvBtn">📦 Revisar Stock</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid" id="kpiStatsGrid"></div>
+
+        <div class="dashboard-split">
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3>Últimos Pedidos Web y WhatsApp</h3>
+              <button type="button" class="btn btn-outline btn-sm" data-jump-tab="crm">Abrir CRM Excel →</button>
+            </div>
+            <div class="excel-table-wrap">
+              <table class="excel-table">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="recentOrdersBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3>Alertas de Stock y Máquinas</h3>
+              <button type="button" class="btn btn-outline btn-sm" data-jump-tab="inventario">Ver Inventario →</button>
+            </div>
+            <div id="alertsList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: CRM EXCEL (VENTAS Y PEDIDOS) -->
+      <section class="admin-panel" id="tab-crm">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Hoja CRM Excel · Ventas y Pedidos en Vivo</h2>
+              <p class="admin-topbar-sub">Se actualiza automáticamente cada vez que entra un pedido desde la web o WhatsApp. Puedes editar estados, pagos y montos directo aquí o descargar tu libro Excel.</p>
+            </div>
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary btn-sm" id="newOrderBtn">+ Registrar Venta / Pedido</button>
+              <button type="button" class="btn btn-whatsapp btn-sm" id="exportXlsxBtn">📥 Exportar Excel (.xlsx)</button>
+              <button type="button" class="btn btn-outline btn-sm" id="exportOrdersCsvBtn">📄 Exportar CSV</button>
+              <label class="btn btn-outline btn-sm" for="importOrdersFile">📤 Importar Excel/CSV</label>
+              <input type="file" id="importOrdersFile" accept=".xlsx,.csv" style="display: none;" />
+            </div>
+          </div>
+
+          <div class="toolbar" style="margin-bottom: 14px;">
+            <input type="search" class="toolbar-input" id="orderSearchInput" placeholder="Buscar cliente, teléfono, servicio o código..." style="min-width: 260px;" />
+            <select class="toolbar-select" id="orderStatusFilter">
+              <option value="all">Todos los estados</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En Proceso">En Proceso</option>
+              <option value="Listo para Retiro">Listo para Retiro</option>
+              <option value="Entregado">Entregado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+            <select class="toolbar-select" id="orderSourceFilter">
+              <option value="all">Todos los canales</option>
+              <option value="web_form">Formulario Web</option>
+              <option value="web_chatbot">Chatbot Web</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="manual">Tienda / Manual</option>
+            </select>
+          </div>
+
+          <div class="excel-table-wrap">
+            <table class="excel-table">
+              <thead>
+                <tr>
+                  <th>ID Pedido</th>
+                  <th>Fecha</th>
+                  <th>Canal</th>
+                  <th>Cliente</th>
+                  <th>Teléfono</th>
+                  <th>Servicio</th>
+                  <th>Detalles</th>
+                  <th>Cant.</th>
+                  <th>Total (₡)</th>
+                  <th>Pago</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="crmOrdersBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: INVENTARIO Y STOCK -->
+      <section class="admin-panel" id="tab-inventario">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Control de Inventario y Stock</h2>
+              <p class="admin-topbar-sub">Agrega, quita o ajusta existencias. Los precios y disponibilidad se sincronizan con el asistente de la web y WhatsApp.</p>
+            </div>
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary btn-sm" id="newInventoryBtn">+ Agregar Producto / Insumo</button>
+              <label class="btn btn-outline btn-sm" for="importInventoryFile">📤 Importar Inventario Excel/CSV</label>
+              <input type="file" id="importInventoryFile" accept=".xlsx,.csv" style="display: none;" />
+            </div>
+          </div>
+
+          <div class="toolbar" style="margin-bottom: 14px;">
+            <input type="search" class="toolbar-input" id="invSearchInput" placeholder="Buscar por nombre, SKU o proveedor..." style="min-width: 240px;" />
+            <select class="toolbar-select" id="invCategoryFilter">
+              <option value="all">Todas las categorías</option>
+              <option value="Impresión">Impresión</option>
+              <option value="Copiado">Copiado</option>
+              <option value="Negocios">Negocios</option>
+              <option value="Papelería">Papelería</option>
+              <option value="Regalos">Regalos</option>
+              <option value="Insumos">Insumos</option>
+            </select>
+          </div>
+
+          <div class="excel-table-wrap">
+            <table class="excel-table">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Producto / Servicio</th>
+                  <th>Categoría</th>
+                  <th>Tipo</th>
+                  <th>Stock Actual</th>
+                  <th>Mínimo</th>
+                  <th>Estado</th>
+                  <th>Costo (₡)</th>
+                  <th>Venta (₡)</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: CLIENTES -->
+      <section class="admin-panel" id="tab-clientes">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Directorio CRM de Clientes</h2>
+              <p class="admin-topbar-sub">Se alimenta automáticamente con cada pedido desde la web o WhatsApp.</p>
+            </div>
+            <div class="toolbar">
+              <input type="search" class="toolbar-input" id="customerSearchInput" placeholder="Buscar cliente por nombre, teléfono o correo..." style="min-width: 260px;" />
+              <button type="button" class="btn btn-primary btn-sm" id="newCustomerBtn">+ Agregar Cliente</button>
+            </div>
+          </div>
+
+          <div class="excel-table-wrap">
+            <table class="excel-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Teléfono / WhatsApp</th>
+                  <th>Correo</th>
+                  <th>Canal</th>
+                  <th>Pedidos</th>
+                  <th>Total Comprado</th>
+                  <th>Último Pedido</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="customersBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: MÁQUINAS Y EQUIPOS -->
+      <section class="admin-panel" id="tab-maquinas">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Control de Máquinas, Impresoras y Equipos</h2>
+              <p class="admin-topbar-sub">Registra estado operativo, contador de impresiones/copias, nivel de tinta/tóner y mantenimientos.</p>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="newMachineBtn">+ Agregar Máquina / Equipo</button>
+          </div>
+          <div class="machines-grid" id="machinesGrid"></div>
+        </div>
+      </section>
+
+      <!-- TAB 6: BASE DE DATOS, RESPALDOS, SEGURIDAD Y WHATSAPP IA -->
+      <section class="admin-panel" id="tab-respaldos">
+        <div class="two-col-grid">
+          <!-- Columna 1: BD y Respaldos Locales + Nube -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3>Base de Datos y Respaldos</h3>
+            </div>
+            <p class="admin-topbar-sub" id="storageModeText">Verificando motor de base de datos...</p>
+            <p class="admin-topbar-sub" id="localMirrorText" style="margin-top: 6px;">Espejo local en navegador (IndexedDB): listo.</p>
+
+            <div class="toolbar" style="margin-top: 14px;">
+              <button type="button" class="btn btn-primary btn-sm" id="createBackupBtn">💾 Crear Respaldo Ahora</button>
+              <button type="button" class="btn btn-outline btn-sm" id="downloadBackupJsonBtn">⬇ Descargar BD (.json)</button>
+              <label class="btn btn-outline btn-sm" for="restoreBackupJsonFile">⬆ Restaurar (.json)</label>
+              <input type="file" id="restoreBackupJsonFile" accept=".json" style="display: none;" />
+            </div>
+
+            <div class="guide-step" style="margin-top: 14px;">
+              <strong>📂 Base de Datos Local Automática en tu PC (sin instalar nada):</strong>
+              <p style="margin: 6px 0 10px; color: var(--text-muted);">
+                Tu navegador ya guarda automáticamente una copia local en IndexedDB. Si usas Chrome o Edge, también puedes vincular una carpeta de tu computadora para que cada respaldo y Excel se guarde allí automáticamente.
+              </p>
+              <div class="toolbar">
+                <button type="button" class="btn btn-outline btn-sm" id="linkLocalFolderBtn">📁 Vincular Carpeta Local en PC</button>
+                <span id="localFolderStatus" style="font-size: 0.8rem; color: var(--text-muted);">Sin carpeta vinculada</span>
+              </div>
+            </div>
+
+            <h4 style="margin: 18px 0 10px; color: var(--brand-plum);">Historial de Respaldos Guardados</h4>
+            <div class="excel-table-wrap">
+              <table class="excel-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Motivo</th>
+                    <th>Resumen</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="backupsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Columna 2: Conexión WhatsApp Business / Cloud API + IA + Seguridad -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="panel-card">
+              <div class="panel-header">
+                <h3>📲 Mensajes Automáticos de WhatsApp (+506 6476-0290)</h3>
+              </div>
+              <p class="admin-topbar-sub" id="aiModeText">Verificando estado del asistente...</p>
+
+              <div class="guide-steps">
+                <div class="guide-step" style="border-left-color: var(--whatsapp);">
+                  <strong>✅ Listo para copiar en tu celular (WhatsApp Business · 1 Chip):</strong><br />
+                  1. Abre <strong>WhatsApp Business</strong> → <strong>Herramientas para la empresa</strong> → <strong>Mensaje de bienvenida</strong> y pega:
+                  <div class="code-copy-box" style="white-space: pre-wrap; font-family: inherit; font-size: 0.82rem;">
+                    <span id="waWelcomeTemplateText">¡Hola! 👋 Bienvenido(a) a *Bazar Copi Art* _(Papelería, Impresiones y Regalos)_.
+
+🕒 *Horario de atención:*
+• Lunes a Viernes: 6:30 a.m. – 4:30 p.m.
+• Sábados: 9:00 a.m. – 1:00 p.m.
+• Domingos: Cerrado para retiros (recibimos pedidos por encargo para retirar el lunes).
+
+🛍️ *¿Qué te ofrecemos?*
+• Fotocopias e impresiones (B/N y color) y copias de cédula
+• Folletos (precio especial a docentes) y emplasticados
+• Tarjetas de presentación, facturas y volantes
+• Papelería, stickers y regalos (tazas, peluches, bolsos, broches y separadores)
+💳 *Pagos:* SINPE Móvil y Efectivo.
+
+🤖 Cotiza o haz tu pedido automático con nuestro asistente web aquí:
+👉 https://bazar-copi-art.vercel.app/#preguntas
+
+📎 Si envías un archivo o consulta en horario laboral te respondemos en menos de 10 min. Si es fuera de horario, apenas abramos una persona te atenderá. 😊</span>
+                    <button type="button" class="icon-btn" id="copyWaWelcomeBtn">Copiar</button>
+                  </div>
+                  2. En <strong>Mensaje de ausencia</strong> (fuera de horario laboral) activa y pega:
+                  <div class="code-copy-box" style="white-space: pre-wrap; font-family: inherit; font-size: 0.82rem;">
+                    <span id="waAwayTemplateText">¡Hola! 👋 Gracias por escribir a *Bazar Copi Art*. En este momento nos encontramos *fuera de horario laboral*.
+
+🕒 *Horario de atención:*
+• Lunes a Viernes: 6:30 a.m. – 4:30 p.m.
+• Sábados: 9:00 a.m. – 1:00 p.m.
+• Domingos: Pedidos por encargo para retirar el lunes.
+
+📎 *¿Enviaste un archivo, documento o consulta?*
+No te preocupes: tu mensaje ya quedó guardado. Apenas estemos nuevamente en horario laboral, *una persona de nuestro equipo lo revisará y te responderá personalmente*.
+
+🛍️ *Servicios:* Copias, impresiones, cédulas, folletos, emplasticado, tarjetas, facturas, volantes, papelería y regalos (SINPE Móvil / Efectivo).
+
+🤖 Si deseas ir cotizando o dejar tu pedido registrado desde ya, usa nuestro asistente web:
+👉 https://bazar-copi-art.vercel.app/#preguntas</span>
+                    <button type="button" class="icon-btn" id="copyWaAwayBtn">Copiar</button>
+                  </div>
+                </div>
+
+                <details class="guide-step">
+                  <summary style="cursor: pointer; font-weight: 700; color: var(--brand-plum);">⚙️ Opciones técnicas avanzadas (para soporte / Vercel / API)</summary>
+                  <div style="margin-top: 10px;">
+                    <div class="code-copy-box">
+                      <span id="webhookUrlText">https://bazar-copi-art.vercel.app/api/whatsapp</span>
+                      <button type="button" class="icon-btn" id="copyWebhookBtn">Copiar URL</button>
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--text-muted);">
+                      Para conectar un 2.º chip exclusivo a Meta Cloud API 24/7: usa el Webhook de arriba con Token <code>bazar_copi_art_2026</code> (campo <code>messages</code>) y configura en Vercel <code>WHATSAPP_ACCESS_TOKEN</code>, <code>WHATSAPP_PHONE_NUMBER_ID</code>, <code>GEMINI_API_KEY</code> y opcional <code>UPSTASH_REDIS_REST_URL</code> + <code>UPSTASH_REDIS_REST_TOKEN</code>.
+                    </p>
+                  </div>
+                </details>
+              </div>
+
+              <h4 style="margin: 16px 0 8px; color: var(--brand-plum);">🧪 Probar Coherencia del Bot de WhatsApp Aquí</h4>
+              <div class="tester-box">
+                <div class="tester-log" id="waTesterLog">
+                  <div class="tester-bubble bot">Escribe un mensaje como si fueras un cliente por WhatsApp (ej: "Hola, cuánto cuestan 10 copias a color y a qué hora cierran?")</div>
+                </div>
+                <form id="waTesterForm" style="display: flex; gap: 8px;">
+                  <input type="text" class="toolbar-input" id="waTesterInput" placeholder="Prueba el bot de WhatsApp aquí..." style="flex: 1;" required />
+                  <button type="submit" class="btn btn-whatsapp btn-sm">Enviar prueba</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="panel-card">
+              <div class="panel-header">
+                <h3>🔐 Seguridad y Contraseña de Administración</h3>
+              </div>
+              <form id="passwordForm" class="modal-form">
+                <div class="form-group">
+                  <label for="newAdminUser">Usuario administrador</label>
+                  <input type="text" id="newAdminUser" placeholder="Ej. copiart" />
+                </div>
+                <div class="form-group">
+                  <label for="currentAdminPass">Contraseña actual</label>
+                  <input type="password" id="currentAdminPass" required />
+                </div>
+                <div class="form-group full-span">
+                  <label for="newAdminPass">Nueva contraseña (mínimo 6 caracteres)</label>
+                  <input type="password" id="newAdminPass" required minlength="6" />
+                </div>
+                <div class="modal-actions">
+                  <button type="submit" class="btn btn-primary btn-sm">Actualizar Credenciales</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ================= MODAL UNIVERSAL DE EDICIÓN ================= -->
+  <div class="modal-backdrop" id="editorModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Editar</h3>
+        <button type="button" class="modal-close" id="modalCloseBtn" aria-label="Cerrar">&times;</button>
+      </div>
+      <form id="modalForm" class="modal-form"></form>
+    </div>
+  </div>
+
+  <div class="toast" id="toastEl" role="status" aria-live="polite"></div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

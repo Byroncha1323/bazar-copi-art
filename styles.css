@@ -204,14 +204,15 @@ ul {
 .main-nav {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 18px;
 }
 
 .nav-link {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-main);
   position: relative;
+  white-space: nowrap;
   transition: color var(--transition);
 }
 
@@ -1287,6 +1288,36 @@ ul {
   width: 28px;
   height: 28px;
   fill: currentColor;
+}
+
+.nav-admin-btn {
+  border-color: var(--accent-gold);
+  color: var(--brand-plum);
+  background-color: rgba(197, 160, 89, 0.12);
+}
+
+.nav-admin-btn:hover {
+  background-color: var(--brand-plum);
+  border-color: var(--brand-plum);
+  color: #ffffff;
+}
+
+.chat-order-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background-color: var(--pastel-mint);
+  color: #146334;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.chat-typing {
+  font-style: italic;
+  color: var(--text-muted);
 }
 
 /* ================= RESPONSIVE ================= */

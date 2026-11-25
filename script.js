@@ -1,5 +1,45 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const WHATSAPP_URL = "https://wa.me/message/I5R57DVEH2T7L1";
+  const WHATSAPP_NUMBER = "50664760290";
+  const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+
+  function buildWhatsAppLinkWithText(text = "") {
+    if (!text) return WHATSAPP_URL;
+    return `${WHATSAPP_URL}?text=${encodeURIComponent(text)}`;
+  }
+
+  function escapeHTML(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function formatWhatsAppTextToHTML(rawText) {
+    return escapeHTML(rawText)
+      .replace(/\*([^*\n]+)\*/g, "<strong>$1</strong>")
+      .replace(/_([^_\n]+)_/g, "<em>$1</em>")
+      .replace(/\n/g, "<br>");
+  }
+
+  async function syncOrderToCRM(orderPayload) {
+    try {
+      const res = await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "public_order",
+          order: orderPayload,
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.order || null;
+    } catch {
+      return null;
+    }
+  }
 
   /* 1. Año actual en el footer */
   const yearEl = document.getElementById("currentYear");
@@ -33,26 +73,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!statusDot || !statusText) return;
 
     const now = new Date();
-    const day = now.getDay(); // 0 = Domingo, 1..5 = L-V, 6 = Sábado
+    const day = now.getDay();
     const minutes = now.getHours() * 60 + now.getMinutes();
 
     let isOpen = false;
     let message = "";
 
     if (day >= 1 && day <= 5) {
-      // L-V: 6:30am (390) - 4:30pm (990)
       isOpen = minutes >= 390 && minutes < 990;
       message = isOpen
         ? "Abierto ahora · L-V hasta las 4:30 p.m."
         : "Cerrado ahora · L-V de 6:30 a.m. a 4:30 p.m.";
     } else if (day === 6) {
-      // S: 9:00am (540) - 1:00pm (780)
       isOpen = minutes >= 540 && minutes < 780;
       message = isOpen
         ? "Abierto ahora · Sábados hasta la 1:00 p.m."
         : "Cerrado ahora · Sábados de 9:00 a.m. a 1:00 p.m.";
     } else {
-      // Domingo
       isOpen = false;
       message = "Domingo: pedidos por encargo para retirar el lunes";
     }
@@ -104,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* 6. Formulario rápido para preparar pedido y abrir WhatsApp */
+  /* 6. Formulario rápido para preparar pedido, guardar en CRM y abrir WhatsApp prellenado */
   const orderForm = document.getElementById("whatsappOrderForm");
   const formFeedback = document.getElementById("formFeedback");
 
@@ -121,27 +158,31 @@ document.addEventListener("DOMContentLoaded", () => {
         `Me interesa: ${service}. ` +
         `Detalles: ${details}`;
 
-      let copied = false;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        try {
-          await navigator.clipboard.writeText(formattedMessage);
-          copied = true;
-        } catch {
-          copied = false;
-        }
+      if (formFeedback) {
+        formFeedback.textContent = "Registrando tu pedido y abriendo WhatsApp...";
       }
+
+      const [savedOrder] = await Promise.all([
+        syncOrderToCRM({
+          source: "web_form",
+          customerName: name,
+          serviceName: service,
+          details,
+        }),
+        copyTextToClipboard(formattedMessage),
+      ]);
 
       if (formFeedback) {
-        formFeedback.textContent = copied
-          ? "Mensaje copiado al portapapeles. Abriendo WhatsApp para que solo lo pegues y envíes..."
-          : "Abriendo WhatsApp oficial de Bazar Copi Art...";
+        formFeedback.textContent = savedOrder
+          ? `✅ Pedido ${savedOrder.id} registrado en el sistema. Abriendo WhatsApp con tu mensaje listo...`
+          : "✅ Mensaje preparado. Abriendo WhatsApp oficial de Bazar Copi Art...";
       }
 
-      window.open(WHATSAPP_URL, "_blank", "noopener,noreferrer");
+      window.open(buildWhatsAppLinkWithText(formattedMessage), "_blank", "noopener,noreferrer");
     });
   }
 
-  /* 7. Chatbot de Preguntas Frecuentes (FAQ) */
+  /* 7. Chatbot Inteligente (IA / Coherente + FAQ + Bot Paso a Paso) */
   const chatbotMessages = document.getElementById("chatbotMessages");
   const chatbotForm = document.getElementById("chatbotForm");
   const chatbotInput = document.getElementById("chatbotInput");
@@ -206,19 +247,19 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
-  function getDirectContactFollowupHTML() {
+  function getDirectContactFollowupHTML(prefillText = "") {
     return `
       <div class="chat-direct-followup">
-        <p>¿Tienes consultas más directas o deseas hacer tu pedido personalizado? Contáctanos directamente:</p>
-        <a href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer" class="chat-wa-link">
-          💬 Contactar directamente por WhatsApp
+        <p>¿Deseas continuar o enviar tu consulta directo por WhatsApp?</p>
+        <a href="${buildWhatsAppLinkWithText(prefillText)}" target="_blank" rel="noopener noreferrer" class="chat-wa-link">
+          💬 Hablar por WhatsApp (+506 6476-0290)
         </a>
       </div>
     `;
   }
 
-  function appendChatMessage(role, htmlContent, includeFollowup = false) {
-    if (!chatbotMessages) return;
+  function appendChatMessage(role, htmlContent, includeFollowup = false, prefillText = "") {
+    if (!chatbotMessages) return null;
 
     const msgDiv = document.createElement("div");
     msgDiv.className = `chat-msg ${role}`;
@@ -226,14 +267,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const bubbleDiv = document.createElement("div");
     bubbleDiv.className = "chat-bubble";
     bubbleDiv.innerHTML =
-      htmlContent + (includeFollowup ? getDirectContactFollowupHTML() : "");
+      htmlContent + (includeFollowup ? getDirectContactFollowupHTML(prefillText) : "");
 
     msgDiv.appendChild(bubbleDiv);
     chatbotMessages.appendChild(msgDiv);
     chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    return msgDiv;
   }
 
-  function matchFreeTextQuestion(rawText) {
+  function matchFreeTextQuestionLocal(rawText) {
     const text = rawText.toLowerCase();
 
     if (
@@ -315,31 +357,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     return (
-      "¡Gracias por tu consulta! En <strong>Bazar Copi Art</strong> ofrecemos fotocopias, impresiones, emplasticado, tarjetas de presentación, facturas, volantes, artículos de papelería y regalos."
+      "¡Gracias por tu consulta! En <strong>Bazar Copi Art</strong> ofrecemos fotocopias, impresiones, emplasticado, tarjetas de presentación, facturas, volantes, artículos de papelería y regalos. Si quieres encargar algo, escribe <strong>PEDIDO</strong>."
     );
   }
 
-  faqChips.forEach((chip) => {
-    if (chip.id === "startStepOrderBtn") return;
-    chip.addEventListener("click", () => {
-      const key = chip.dataset.faq;
-      const item = FAQ_DATA[key];
-      if (!item) return;
-
-      stepBotActive = false;
-      stepSession = null;
-
-      appendChatMessage("user", item.question, false);
-      setTimeout(() => {
-        appendChatMessage("bot", item.answer, true);
-      }, 220);
-    });
-  });
-
-  /* 8. Modo Bot Paso a Paso (Nombre -> Teléfono -> Correo -> Menú 1 al 9 -> Detalles -> Enviar armado a WhatsApp) */
+  /* 8. Modo Bot Paso a Paso + IA Coherente con Historial */
   const startStepOrderBtn = document.getElementById("startStepOrderBtn");
   let stepBotActive = false;
   let stepSession = null;
+  let freeChatSession = { step: "IDLE", history: [] };
   const webSessionId = "web-" + Math.random().toString(36).slice(2, 10);
 
   const STEP_SERVICE_MENU = {
@@ -359,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `Hola Bazar Copi Art, quiero realizar el siguiente pedido:\n` +
       `• Nombre: ${session.name}\n` +
       `• Teléfono: ${session.phone}\n` +
-      `• Correo: ${session.email}\n` +
+      (session.email ? `• Correo: ${session.email}\n` : "") +
       `• Servicio: ${session.serviceName}\n` +
       `• Detalles: ${session.details}`
     );
@@ -388,7 +414,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function attachStepBotInteractiveListeners(containerEl, completedSession) {
-    // Botones del menú numérico (1 al 9)
     containerEl.querySelectorAll(".chat-num-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const num = btn.getAttribute("data-menu-num");
@@ -397,7 +422,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // Acciones finales cuando el pedido está completo
     if (completedSession) {
       const waText = buildWhatsAppOrderText(completedSession);
       const sendWaBtn = containerEl.querySelector(".js-send-order-wa");
@@ -407,13 +431,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sendWaBtn) {
         sendWaBtn.addEventListener("click", async (e) => {
           e.preventDefault();
-          const copied = await copyTextToClipboard(waText);
+          await copyTextToClipboard(waText);
           if (noticeEl) {
-            noticeEl.textContent = copied
-              ? "✅ ¡Ficha copiada! Abriendo WhatsApp oficial para que solo la pegues y envíes..."
-              : "Abriendo WhatsApp oficial de Bazar Copi Art...";
+            noticeEl.textContent =
+              "✅ Abriendo WhatsApp (+506 6476-0290) con tu pedido listo para enviar...";
           }
-          window.open(WHATSAPP_URL, "_blank", "noopener,noreferrer");
+          window.open(buildWhatsAppLinkWithText(waText), "_blank", "noopener,noreferrer");
         });
       }
 
@@ -446,28 +469,81 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
   }
 
+  function updateStepInputPlaceholder(step) {
+    if (!chatbotInput) return;
+    switch (step) {
+      case "ASK_NAME":
+        chatbotInput.placeholder = "Paso 1: Escribe tu nombre completo...";
+        break;
+      case "ASK_PHONE":
+        chatbotInput.placeholder = "Paso 2: Escribe tu número de teléfono (ej. 8888-8888)...";
+        break;
+      case "ASK_EMAIL":
+        chatbotInput.placeholder = "Paso 3: Escribe tu correo (o escribe 'omitir')...";
+        break;
+      case "ASK_SERVICE":
+        chatbotInput.placeholder = "Paso 4: Escribe un número del 1 al 9 o haz clic en una opción...";
+        break;
+      case "ASK_DETAILS":
+        chatbotInput.placeholder = "Paso 5: Escribe la cantidad y detalles de tu pedido...";
+        break;
+      default:
+        chatbotInput.placeholder = "Escribe tu pregunta o pedido aquí (ej. precios, horario, tazas)...";
+    }
+  }
+
+  function renderCompletedOrderSummary(completedSnapshot, savedOrder) {
+    const waFormatted = buildWhatsAppOrderText(completedSnapshot);
+    copyTextToClipboard(waFormatted);
+
+    const nameInput = document.getElementById("customerName");
+    const detailsInput = document.getElementById("orderDetails");
+    if (nameInput) nameInput.value = completedSnapshot.name;
+    if (detailsInput) {
+      detailsInput.value = `Tel: ${completedSnapshot.phone} | Correo: ${
+        completedSnapshot.email || "No indicado"
+      } | Servicio: ${completedSnapshot.serviceName} | Detalles: ${completedSnapshot.details}`;
+    }
+
+    const orderIdLine = savedOrder?.id
+      ? `<span class="chat-order-badge">✅ Registrado en CRM: ${escapeHTML(savedOrder.id)}</span><br><br>`
+      : "";
+
+    const summaryHTML =
+      `🎉 <strong>¡Ficha de Pedido Lista para Enviar!</strong><br>` +
+      orderIdLine +
+      `• <strong>Nombre:</strong> ${escapeHTML(completedSnapshot.name)}<br>` +
+      `• <strong>Teléfono:</strong> ${escapeHTML(completedSnapshot.phone)}<br>` +
+      (completedSnapshot.email
+        ? `• <strong>Correo:</strong> ${escapeHTML(completedSnapshot.email)}<br>`
+        : "") +
+      `• <strong>Servicio:</strong> ${escapeHTML(completedSnapshot.serviceName)}<br>` +
+      `• <strong>Detalles:</strong> ${escapeHTML(completedSnapshot.details)}<br><br>` +
+      `Tu pedido ya quedó guardado y preparado. Haz clic abajo para abrir nuestro WhatsApp oficial (+506 6476-0290) con el mensaje listo:`;
+
+    const actionsHTML = `
+      <div class="chat-order-summary-actions">
+        <a href="${buildWhatsAppLinkWithText(waFormatted)}" target="_blank" rel="noopener noreferrer" class="chat-wa-link js-send-order-wa">
+          📲 Enviar Pedido Armado a WhatsApp Ahora
+        </a>
+        <button type="button" class="chat-copy-btn js-copy-order-wa">
+          📋 Volver a copiar ficha del pedido
+        </button>
+        <span class="chat-copied-notice js-copied-notice">✅ Ficha copiada automáticamente al portapapeles</span>
+      </div>
+    `;
+
+    appendStepBotMessage(summaryHTML, actionsHTML, completedSnapshot);
+  }
+
   async function processLocalOrRemoteStep(userText) {
     const clean = (userText || "").trim();
     const lower = clean.toLowerCase();
-
-    // Sincronizar en segundo plano con /api/whatsapp en Vercel
-    fetch("/api/whatsapp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mode: "simulate",
-        sessionId: webSessionId,
-        text: clean,
-        session: stepSession,
-      }),
-    }).catch(() => {});
 
     const isReset =
       !stepSession ||
       lower === "hola" ||
       lower === "inicio" ||
-      lower === "menu" ||
-      lower === "menú" ||
       lower === "reiniciar";
 
     if (isReset || stepSession.step === "COMPLETED") {
@@ -479,10 +555,9 @@ document.addEventListener("DOMContentLoaded", () => {
         serviceNumber: "",
         serviceName: "",
         details: "",
+        history: [],
       };
-      if (chatbotInput) {
-        chatbotInput.placeholder = "Paso 1: Escribe tu nombre completo...";
-      }
+      updateStepInputPlaceholder("ASK_NAME");
       appendStepBotMessage(
         "¡Perfecto! Vamos a preparar tu pedido paso a paso para <strong>Bazar Copi Art</strong>. 📝<br><br>" +
           "<strong>Paso 1 de 5:</strong> Por favor escribe tu <strong>nombre completo</strong>:"
@@ -490,6 +565,49 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Intentar primero con el servidor para mantener coherencia si el usuario hace una pregunta intermedia
+    try {
+      const res = await fetch("/api/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "simulate",
+          sessionId: webSessionId,
+          text: clean,
+          session: stepSession,
+          forceStepMode: true,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.ok && data.session) {
+          stepSession = data.session;
+          updateStepInputPlaceholder(stepSession.step);
+
+          if (stepSession.step === "COMPLETED") {
+            stepBotActive = false;
+            renderCompletedOrderSummary({ ...stepSession }, data.savedOrder);
+            return;
+          }
+
+          if (stepSession.step === "IDLE") {
+            stepBotActive = false;
+            appendStepBotMessage(formatWhatsAppTextToHTML(data.reply));
+            return;
+          }
+
+          const extra =
+            stepSession.step === "ASK_SERVICE" ? renderNumberedMenuButtonsHTML() : "";
+          appendStepBotMessage(formatWhatsAppTextToHTML(data.reply), extra);
+          return;
+        }
+      }
+    } catch {
+      // Fallback local si no hay servidor
+    }
+
+    // Fallback local si /api/whatsapp no respondió
     if (stepSession.step === "ASK_NAME") {
       if (clean.length < 2) {
         appendStepBotMessage("Por favor escribe tu <strong>nombre completo</strong> para continuar:");
@@ -497,11 +615,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       stepSession.name = clean;
       stepSession.step = "ASK_PHONE";
-      if (chatbotInput) {
-        chatbotInput.placeholder = "Paso 2: Escribe tu número de teléfono (ej. 8888-8888)...";
-      }
+      updateStepInputPlaceholder("ASK_PHONE");
       appendStepBotMessage(
-        `¡Mucho gusto, <strong>${stepSession.name}</strong>! 😊<br><br>` +
+        `¡Mucho gusto, <strong>${escapeHTML(stepSession.name)}</strong>! 😊<br><br>` +
           `<strong>Paso 2 de 5:</strong> Indícanos tu <strong>número de teléfono</strong> de contacto (ej. 8888-8888):`
       );
       return;
@@ -515,28 +631,25 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       stepSession.phone = clean;
       stepSession.step = "ASK_EMAIL";
-      if (chatbotInput) {
-        chatbotInput.placeholder = "Paso 3: Escribe tu correo electrónico (ej. nombre@correo.com)...";
-      }
+      updateStepInputPlaceholder("ASK_EMAIL");
       appendStepBotMessage(
-        `Teléfono registrado (<strong>${stepSession.phone}</strong>). 📱<br><br>` +
-          `<strong>Paso 3 de 5:</strong> Ahora escribe tu <strong>correo electrónico</strong>:`
+        `Teléfono registrado (<strong>${escapeHTML(stepSession.phone)}</strong>). 📱<br><br>` +
+          `<strong>Paso 3 de 5:</strong> Ahora escribe tu <strong>correo electrónico</strong> (o escribe <strong>omitir</strong>):`
       );
       return;
     }
 
     if (stepSession.step === "ASK_EMAIL") {
-      if (!clean.includes("@") || !clean.includes(".")) {
-        appendStepBotMessage("Por favor ingresa un <strong>correo electrónico válido</strong> (ej. cliente@correo.com):");
+      const skip = lower === "omitir" || lower === "no" || lower === "sin correo";
+      if (!skip && (!clean.includes("@") || !clean.includes("."))) {
+        appendStepBotMessage("Por favor ingresa un <strong>correo electrónico válido</strong> o escribe <strong>omitir</strong>:");
         return;
       }
-      stepSession.email = clean;
+      stepSession.email = skip ? "" : clean;
       stepSession.step = "ASK_SERVICE";
-      if (chatbotInput) {
-        chatbotInput.placeholder = "Paso 4: Escribe un número del 1 al 9 o haz clic en una opción...";
-      }
+      updateStepInputPlaceholder("ASK_SERVICE");
       appendStepBotMessage(
-        `¡Gracias, <strong>${stepSession.name}</strong>! Ya guardamos tus datos personales.<br><br>` +
+        `¡Gracias, <strong>${escapeHTML(stepSession.name)}</strong>! Ya guardamos tus datos.<br><br>` +
           `<strong>Paso 4 de 5:</strong> Escribe el <strong>número (del 1 al 9)</strong> o haz clic en el servicio que necesitas:`,
         renderNumberedMenuButtonsHTML()
       );
@@ -556,12 +669,10 @@ document.addEventListener("DOMContentLoaded", () => {
       stepSession.serviceNumber = num;
       stepSession.serviceName = STEP_SERVICE_MENU[num];
       stepSession.step = "ASK_DETAILS";
-      if (chatbotInput) {
-        chatbotInput.placeholder = "Paso 5: Escribe la cantidad y detalles de tu pedido...";
-      }
+      updateStepInputPlaceholder("ASK_DETAILS");
       appendStepBotMessage(
-        `Has seleccionado:<br>✅ <strong>${stepSession.serviceName}</strong><br><br>` +
-          `<strong>Paso 5 de 5:</strong> Escribe la <strong>cantidad y detalles</strong> de lo que necesitas (ej. blanco y negro o color, tamaño, o especificaciones):`
+        `Has seleccionado:<br>✅ <strong>${escapeHTML(stepSession.serviceName)}</strong><br><br>` +
+          `<strong>Paso 5 de 5:</strong> Escribe la <strong>cantidad y detalles</strong> de lo que necesitas:`
       );
       return;
     }
@@ -570,52 +681,95 @@ document.addEventListener("DOMContentLoaded", () => {
       stepSession.details = clean;
       stepSession.step = "COMPLETED";
       stepBotActive = false;
-      if (chatbotInput) {
-        chatbotInput.placeholder = "Escribe tu pregunta aquí (ej. precios, horario, SINPE, regalos)...";
-      }
+      updateStepInputPlaceholder("IDLE");
 
       const completedSnapshot = { ...stepSession };
-      const waFormatted = buildWhatsAppOrderText(completedSnapshot);
-      await copyTextToClipboard(waFormatted);
+      const savedOrder = await syncOrderToCRM({
+        source: "web_chatbot",
+        customerName: completedSnapshot.name,
+        phone: completedSnapshot.phone,
+        email: completedSnapshot.email,
+        serviceName: completedSnapshot.serviceName,
+        details: completedSnapshot.details,
+      });
 
-      // Rellenar también el formulario de contacto inferior automáticamente
-      const nameInput = document.getElementById("customerName");
-      const detailsInput = document.getElementById("orderDetails");
-      if (nameInput) nameInput.value = completedSnapshot.name;
-      if (detailsInput) {
-        detailsInput.value = `Tel: ${completedSnapshot.phone} | Correo: ${completedSnapshot.email} | Servicio: ${completedSnapshot.serviceName} | Detalles: ${completedSnapshot.details}`;
-      }
-
-      const summaryHTML =
-        `🎉 <strong>¡Ficha de Pedido Lista para Enviar!</strong><br><br>` +
-        `• <strong>Nombre:</strong> ${completedSnapshot.name}<br>` +
-        `• <strong>Teléfono:</strong> ${completedSnapshot.phone}<br>` +
-        `• <strong>Correo:</strong> ${completedSnapshot.email}<br>` +
-        `• <strong>Servicio:</strong> ${completedSnapshot.serviceName}<br>` +
-        `• <strong>Detalles:</strong> ${completedSnapshot.details}<br><br>` +
-        `Hemos copiado tu ficha automáticamente. Haz clic abajo para abrir nuestro WhatsApp oficial, pegar tu pedido y recibir atención directa en menos de 10 minutos:`;
-
-      const actionsHTML = `
-        <div class="chat-order-summary-actions">
-          <a href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer" class="chat-wa-link js-send-order-wa">
-            📲 Enviar Pedido Armado a WhatsApp Ahora
-          </a>
-          <button type="button" class="chat-copy-btn js-copy-order-wa">
-            📋 Volver a copiar ficha del pedido
-          </button>
-          <span class="chat-copied-notice js-copied-notice">✅ Ficha copiada automáticamente al portapapeles</span>
-        </div>
-      `;
-
-      appendStepBotMessage(summaryHTML, actionsHTML, completedSnapshot);
+      renderCompletedOrderSummary(completedSnapshot, savedOrder);
     }
   }
 
   async function handleStepBotUserInput(text) {
-    appendChatMessage("user", text, false);
+    appendChatMessage("user", escapeHTML(text), false);
     await processLocalOrRemoteStep(text);
     if (chatbotInput) chatbotInput.focus();
   }
+
+  async function handleFreeAIChatInput(userQuestion) {
+    appendChatMessage("user", escapeHTML(userQuestion), false);
+
+    const typingNode = appendChatMessage(
+      "bot",
+      '<span class="chat-typing">Escribiendo respuesta coherente...</span>',
+      false
+    );
+
+    try {
+      const res = await fetch("/api/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "chat",
+          sessionId: webSessionId,
+          text: userQuestion,
+          session: freeChatSession,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (typingNode) typingNode.remove();
+
+        if (data?.ok && data.reply) {
+          freeChatSession = data.session || freeChatSession;
+          let html = formatWhatsAppTextToHTML(data.reply);
+          if (data.savedOrder?.id) {
+            html += `<br><span class="chat-order-badge">✅ Pedido registrado en CRM: ${escapeHTML(
+              data.savedOrder.id
+            )}</span>`;
+          }
+          const waPrefill = data.savedOrder
+            ? `Hola Bazar Copi Art, acabo de registrar mi pedido ${data.savedOrder.id} (${data.savedOrder.serviceName}: ${data.savedOrder.details}) a nombre de ${data.savedOrder.customerName}.`
+            : userQuestion;
+
+          appendChatMessage("bot", html, true, waPrefill);
+          return;
+        }
+      }
+    } catch {
+      // Fallback local
+    }
+
+    if (typingNode) typingNode.remove();
+    const localReply = matchFreeTextQuestionLocal(userQuestion);
+    appendChatMessage("bot", localReply, true, userQuestion);
+  }
+
+  faqChips.forEach((chip) => {
+    if (chip.id === "startStepOrderBtn") return;
+    chip.addEventListener("click", () => {
+      const key = chip.dataset.faq;
+      const item = FAQ_DATA[key];
+      if (!item) return;
+
+      stepBotActive = false;
+      stepSession = null;
+      updateStepInputPlaceholder("IDLE");
+
+      appendChatMessage("user", escapeHTML(item.question), false);
+      setTimeout(() => {
+        appendChatMessage("bot", item.answer, true, item.question);
+      }, 180);
+    });
+  });
 
   if (startStepOrderBtn) {
     startStepOrderBtn.addEventListener("click", async () => {
@@ -636,24 +790,18 @@ document.addEventListener("DOMContentLoaded", () => {
       chatbotInput.value = "";
       const lower = userQuestion.toLowerCase();
 
-      if (
-        stepBotActive ||
-        lower === "hola" ||
-        lower === "menu" ||
-        lower === "menú" ||
-        lower === "pedido" ||
-        lower === "comprar"
-      ) {
-        stepBotActive = true;
+      if (stepBotActive) {
         await handleStepBotUserInput(userQuestion);
         return;
       }
 
-      appendChatMessage("user", userQuestion, false);
-      const answerHTML = matchFreeTextQuestion(userQuestion);
-      setTimeout(() => {
-        appendChatMessage("bot", answerHTML, true);
-      }, 250);
+      if (lower === "pedido paso a paso" || lower === "paso a paso") {
+        stepBotActive = true;
+        await handleStepBotUserInput("hola");
+        return;
+      }
+
+      await handleFreeAIChatInput(userQuestion);
     });
   }
 
@@ -661,14 +809,13 @@ document.addEventListener("DOMContentLoaded", () => {
     chatbotReset.addEventListener("click", () => {
       stepBotActive = false;
       stepSession = null;
-      if (chatbotInput) {
-        chatbotInput.placeholder = "Escribe tu pregunta aquí (ej. precios, horario, SINPE, regalos)...";
-      }
+      freeChatSession = { step: "IDLE", history: [] };
+      updateStepInputPlaceholder("IDLE");
       chatbotMessages.innerHTML = `
         <div class="chat-msg bot">
           <div class="chat-bubble">
             ¡Hola! 👋 Soy el asistente virtual de <strong>Bazar Copi Art</strong>.
-            Selecciona <strong>"📝 Hacer Pedido Paso a Paso"</strong> a la izquierda para registrar tu pedido con menú numérico, o elige una pregunta frecuente.
+            Escríbeme cualquier pregunta o pedido con total libertad, o selecciona <strong>"📝 Hacer Pedido Paso a Paso"</strong> a la izquierda.
           </div>
         </div>
       `;
