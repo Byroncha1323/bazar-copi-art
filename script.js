@@ -144,18 +144,43 @@ document.addEventListener("DOMContentLoaded", () => {
   /* 6. Formulario rápido para preparar pedido, guardar en CRM y abrir WhatsApp prellenado */
   const orderForm = document.getElementById("whatsappOrderForm");
   const formFeedback = document.getElementById("formFeedback");
+  const serviceSelect = document.getElementById("serviceType");
+
+  // Sincronizar catálogo en vivo desde la BD para incluir productos nuevos creados en Inventario
+  if (serviceSelect) {
+    fetch("/api/db?action=public_catalog")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data?.ok || !Array.isArray(data.inventory)) return;
+        const existingVals = new Set(
+          [...serviceSelect.options].map((o) => o.value.toLowerCase())
+        );
+        data.inventory
+          .filter((item) => item.stock > 0 && item.salePrice > 0)
+          .forEach((item) => {
+            if ([...existingVals].some((v) => v.includes(item.name.toLowerCase()))) return;
+            const opt = document.createElement("option");
+            opt.value = `${item.name} (₡${item.salePrice.toLocaleString("es-CR")})`;
+            opt.textContent = `${item.name} — ₡${item.salePrice.toLocaleString("es-CR")}`;
+            serviceSelect.insertBefore(opt, serviceSelect.lastElementChild);
+          });
+      })
+      .catch(() => {});
+  }
 
   if (orderForm) {
     orderForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const name = document.getElementById("customerName").value.trim();
+      const phone = document.getElementById("customerPhone")?.value.trim() || "";
       const service = document.getElementById("serviceType").value;
       const details = document.getElementById("orderDetails").value.trim();
 
       const formattedMessage =
-        `Hola Bazar Copi Art, mi nombre es ${name}. ` +
-        `Me interesa: ${service}. ` +
+        `Hola Bazar Copi Art, mi nombre es ${name}` +
+        (phone ? ` (Tel: ${phone})` : "") +
+        `. Me interesa: ${service}. ` +
         `Detalles: ${details}`;
 
       if (formFeedback) {
@@ -166,6 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
         syncOrderToCRM({
           source: "web_form",
           customerName: name,
+          phone,
           serviceName: service,
           details,
         }),

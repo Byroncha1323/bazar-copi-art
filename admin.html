@@ -60,6 +60,7 @@
         <span class="sync-pill" id="syncStatusPill">● Sincronizado</span>
         <button type="button" class="btn btn-outline btn-sm" id="syncNowBtn">↻ Sincronizar</button>
         <button type="button" class="btn btn-primary btn-sm" id="downloadXlsxTopBtn">📥 Descargar Excel (.xlsx)</button>
+        <button type="button" class="btn btn-outline btn-sm" id="quickHelpBtn">❓ Guía</button>
         <a href="index.html" class="btn btn-outline btn-sm">🌐 Ver Web</a>
         <button type="button" class="btn btn-outline btn-sm" id="logoutBtn">Salir</button>
       </div>
@@ -67,7 +68,7 @@
 
     <nav class="admin-tabs-bar" role="tablist" aria-label="Secciones del panel administrativo">
       <button type="button" class="admin-tab-btn active" data-tab="resumen">📊 Resumen General</button>
-      <button type="button" class="admin-tab-btn" data-tab="crm">📑 CRM Excel (Ventas y Pedidos)</button>
+      <button type="button" class="admin-tab-btn" data-tab="crm" id="crmTabBtn">📑 CRM Excel (Ventas y Pedidos)</button>
       <button type="button" class="admin-tab-btn" data-tab="inventario">📦 Inventario y Stock</button>
       <button type="button" class="admin-tab-btn" data-tab="clientes">👥 Clientes</button>
       <button type="button" class="admin-tab-btn" data-tab="maquinas">🖨️ Máquinas y Equipos</button>
@@ -94,7 +95,7 @@
             <div class="toolbar">
               <button type="button" class="btn btn-primary btn-sm" id="quickNewOrderBtn">+ Registrar Venta</button>
               <button type="button" class="btn btn-whatsapp btn-sm" id="quickExportXlsxBtn">📥 Descargar Mi Excel</button>
-              <button type="button" class="btn btn-outline btn-sm" id="quickBackupBtn">💾 Hacer Respaldo</button>
+              <button type="button" class="btn btn-outline btn-sm" id="dayCloseBtn">📊 Cierre del Día (Respaldo + Excel)</button>
               <button type="button" class="btn btn-outline btn-sm" id="quickInvBtn">📦 Revisar Stock</button>
             </div>
           </div>
@@ -267,6 +268,7 @@
                   <th>Teléfono / WhatsApp</th>
                   <th>Correo</th>
                   <th>Canal</th>
+                  <th>Segmento</th>
                   <th>Pedidos</th>
                   <th>Total Comprado</th>
                   <th>Último Pedido</th>

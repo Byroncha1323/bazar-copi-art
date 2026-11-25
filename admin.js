@@ -259,6 +259,7 @@ el("logoutBtn")?.addEventListener("click", async () => {
 // ================= SINCRONIZACIÓN DE DATOS =================
 async function refreshDatabase(silent = false) {
   try {
+    const prevOrdersCount = dbState?.orders?.length || 0;
     const data = await apiFetch("/api/db");
 
     // Si el servidor reinició en caché volátil sin datos de pedidos, pero el espejo local tiene datos reales,
@@ -282,6 +283,9 @@ async function refreshDatabase(silent = false) {
       showToast("Datos recuperados automáticamente desde tu base local.");
     } else {
       dbState = data;
+      if (silent && prevOrdersCount > 0 && (dbState.orders?.length || 0) > prevOrdersCount) {
+        showToast("🔔 ¡Llegó un nuevo pedido desde la web o WhatsApp!");
+      }
     }
 
     await saveLocalMirror(dbState);
@@ -364,10 +368,30 @@ el("togglePassBtn")?.addEventListener("click", () => {
 
 el("quickNewOrderBtn")?.addEventListener("click", () => openOrderModal(null));
 el("quickExportXlsxBtn")?.addEventListener("click", exportFullExcelWorkbook);
-el("quickBackupBtn")?.addEventListener("click", () => {
-  mutateDb({ action: "create_backup", reason: "Copia rápida desde Resumen" }, "Copia de seguridad guardada.");
+el("dayCloseBtn")?.addEventListener("click", async () => {
+  await mutateDb(
+    { action: "create_backup", reason: `Cierre del día ${new Date().toLocaleDateString("es-CR")}` },
+    ""
+  );
+  exportFullExcelWorkbook();
+  showToast("✅ Cierre del día listo: respaldo guardado y Excel descargado.");
 });
 el("quickInvBtn")?.addEventListener("click", () => activateTab("inventario"));
+el("quickHelpBtn")?.addEventListener("click", () => {
+  openModal(
+    "❓ Guía Rápida de Uso (1 minuto)",
+    `
+      <div class="full-span" style="display:flex;flex-direction:column;gap:10px;font-size:0.9rem;">
+        <div class="guide-step"><strong>1. Pedidos automáticos:</strong> Cada pedido que entra por la web o WhatsApp aparece solo en <em>📑 CRM Excel</em>.</div>
+        <div class="guide-step"><strong>2. Un clic para avanzar:</strong> Usa <em>✅ Listo</em> para marcar que está terminado y <em>💬 WA</em> para avisarle al cliente por WhatsApp.</div>
+        <div class="guide-step"><strong>3. Ventas en tienda:</strong> Pulsa <em>+ Registrar Venta</em> y elige el producto para rebajar el stock automáticamente.</div>
+        <div class="guide-step"><strong>4. Stock y Máquinas:</strong> En <em>📦 Inventario</em> usa <strong>+ / -</strong> para sumar o restar existencias, y en <em>🖨️ Máquinas</em> lleva tinta y mantenimientos.</div>
+        <div class="guide-step"><strong>5. Al cerrar el día:</strong> Pulsa <strong>📊 Cierre del Día</strong> en el Resumen; guarda una copia de seguridad y descarga tu Excel completo.</div>
+      </div>
+    `,
+    async () => closeModal()
+  );
+});
 
 // ================= RENDERIZADO GLOBAL =================
 function renderAll() {
@@ -393,6 +417,10 @@ function renderDashboard() {
   const machines = dbState.machines || [];
   const customers = dbState.customers || [];
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const todaySales = orders
+    .filter((o) => o.status !== "Cancelado" && String(o.createdAt || "").startsWith(todayIso))
+    .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
   const totalSales = orders
     .filter((o) => o.status !== "Cancelado")
     .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
@@ -402,11 +430,19 @@ function renderDashboard() {
   const lowStock = inventory.filter((i) => Number(i.stock) <= Number(i.minStock));
   const activeMachines = machines.filter((m) => m.status === "Operativa").length;
 
+  const crmTabBtn = el("crmTabBtn");
+  if (crmTabBtn) {
+    crmTabBtn.textContent =
+      pendingOrders > 0
+        ? `📑 CRM Excel (${pendingOrders} pend.)`
+        : "📑 CRM Excel (Ventas y Pedidos)";
+  }
+
   el("kpiStatsGrid").innerHTML = `
     <div class="stat-card">
-      <div class="stat-label">Ventas Registradas (CRM)</div>
-      <div class="stat-value">${formatColones(totalSales)}</div>
-      <div class="stat-sub">${orders.length} pedidos totales · ${customers.length} clientes</div>
+      <div class="stat-label">Ventas Hoy / Total CRM</div>
+      <div class="stat-value">${formatColones(todaySales)}</div>
+      <div class="stat-sub">Acumulado: ${formatColones(totalSales)} (${orders.length} pedidos)</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Pedidos Pendientes</div>
@@ -507,12 +543,21 @@ function renderCRMOrders() {
   tbody.innerHTML = filtered
     .map((o) => {
       const waDigits = formatWaCustomerPhone(o.phone || o.whatsappFrom);
-      const waMsg = encodeURIComponent(
-        `¡Hola ${o.customerName}! Te saludamos de Bazar Copi Art sobre tu pedido ${o.id} (${o.serviceName}). Estado actual: ${o.status}.`
-      );
+      const readyText =
+        o.status === "Listo para Retiro"
+          ? `¡Hola ${o.customerName}! 😊 Tu pedido ${o.id} (${o.serviceName}) en Bazar Copi Art ya está *listo para retirar*.` +
+            (Number(o.total) > 0 ? ` Total: ₡${Number(o.total).toLocaleString("es-CR")}.` : "")
+          : `¡Hola ${o.customerName}! Te saludamos de Bazar Copi Art sobre tu pedido ${o.id} (${o.serviceName}). Estado actual: ${o.status}.`;
+      const waMsg = encodeURIComponent(readyText);
       const waBtn = waDigits
-        ? `<a class="icon-btn wa" href="https://wa.me/${waDigits}?text=${waMsg}" target="_blank" rel="noopener noreferrer">💬 WA</a>`
+        ? `<a class="icon-btn wa" href="https://wa.me/${waDigits}?text=${waMsg}" target="_blank" rel="noopener noreferrer" title="Enviar mensaje de WhatsApp al cliente">💬 WA</a>`
         : "";
+      const quickFlowBtn =
+        o.status === "Pendiente" || o.status === "En Proceso"
+          ? `<button type="button" class="icon-btn js-mark-ready" title="Marcar Listo para Retiro">✅ Listo</button>`
+          : o.status === "Listo para Retiro"
+          ? `<button type="button" class="icon-btn js-mark-delivered" title="Marcar como Entregado">🎉 Entregado</button>`
+          : "";
 
       return `
         <tr data-order-id="${escapeHTML(o.id)}">
@@ -543,6 +588,7 @@ function renderCRMOrders() {
           </td>
           <td>
             <div class="row-actions">
+              ${quickFlowBtn}
               ${waBtn}
               <button type="button" class="icon-btn js-edit-order">Editar</button>
               <button type="button" class="icon-btn danger js-del-order">✕</button>
@@ -574,6 +620,18 @@ function renderCRMOrders() {
       mutateDb(
         { action: "upsert_order", order: { ...order, status: e.target.value } },
         `Estado actualizado en ${id}`
+      );
+    });
+    row.querySelector(".js-mark-ready")?.addEventListener("click", () => {
+      mutateDb(
+        { action: "upsert_order", order: { ...order, status: "Listo para Retiro" } },
+        `Pedido ${id} marcado Listo para Retiro. Ya puedes tocar 💬 WA para avisarle.`
+      );
+    });
+    row.querySelector(".js-mark-delivered")?.addEventListener("click", () => {
+      mutateDb(
+        { action: "upsert_order", order: { ...order, status: "Entregado" } },
+        `Pedido ${id} marcado como Entregado.`
       );
     });
     row.querySelector(".js-edit-order")?.addEventListener("click", () => openOrderModal(order));
@@ -675,6 +733,18 @@ el("invSearchInput")?.addEventListener("input", renderInventory);
 el("invCategoryFilter")?.addEventListener("change", renderInventory);
 
 // ================= CLIENTES CRM =================
+function getCustomerSegment(c) {
+  const count = Number(c.ordersCount) || 0;
+  if (count >= 5) return { label: "Frecuente", badgeClass: "badge-ok" };
+  const lastMs = c.lastOrderAt ? new Date(c.lastOrderAt).getTime() : 0;
+  const daysSinceLast = lastMs ? (Date.now() - lastMs) / 86400000 : 0;
+  if (daysSinceLast > 30 && count < 5) return { label: "En riesgo", badgeClass: "badge-danger" };
+  const createdMs = c.createdAt ? new Date(c.createdAt).getTime() : lastMs;
+  const daysSinceCreated = createdMs ? (Date.now() - createdMs) / 86400000 : 0;
+  if (daysSinceCreated <= 30) return { label: "Nuevo", badgeClass: "badge-plum" };
+  return { label: "Activo", badgeClass: "badge-warn" };
+}
+
 function renderCustomers() {
   const query = (el("customerSearchInput")?.value || "").toLowerCase().trim();
   const filtered = (dbState.customers || []).filter((c) => {
@@ -684,12 +754,13 @@ function renderCustomers() {
 
   const tbody = el("customersBody");
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Aún no hay clientes registrados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:20px;">Aún no hay clientes registrados.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered
     .map((c) => {
+      const seg = getCustomerSegment(c);
       const waDigits = formatWaCustomerPhone(c.phone);
       const waBtn = waDigits
         ? `<a class="icon-btn wa" href="https://wa.me/${waDigits}" target="_blank" rel="noopener noreferrer">💬 WA</a>`
@@ -701,6 +772,7 @@ function renderCustomers() {
           <td>${escapeHTML(c.phone || "—")}</td>
           <td>${escapeHTML(c.email || "—")}</td>
           <td><span class="badge badge-plum">${escapeHTML(sourceLabel(c.lastChannel || c.source))}</span></td>
+          <td><span class="badge ${seg.badgeClass}">${seg.label}</span></td>
           <td>${Number(c.ordersCount) || 0}</td>
           <td><strong>${formatColones(c.totalSpent)}</strong></td>
           <td>${escapeHTML(formatDateTime(c.lastOrderAt))}</td>
@@ -901,13 +973,14 @@ function buildWorkbookSheets(state) {
   ];
 
   const custSheet = [
-    ["ID", "Nombre", "Teléfono", "Correo", "Canal", "Pedidos", "Total Comprado", "Último Pedido", "Notas"],
+    ["ID", "Nombre", "Teléfono", "Correo", "Canal", "Segmento", "Pedidos", "Total Comprado", "Último Pedido", "Notas"],
     ...(state.customers || []).map((c) => [
       c.id,
       c.name,
       c.phone || "",
       c.email || "",
       sourceLabel(c.lastChannel || c.source),
+      getCustomerSegment(c).label,
       Number(c.ordersCount) || 0,
       Number(c.totalSpent) || 0,
       formatDateTime(c.lastOrderAt),
@@ -932,11 +1005,34 @@ function buildWorkbookSheets(state) {
     ]),
   ];
 
+  const activeOrders = (state.orders || []).filter((o) => o.status !== "Cancelado");
+  const totalRevenue = activeOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const deliveredCount = activeOrders.filter((o) => o.status === "Entregado").length;
+  const pendingCount = activeOrders.filter((o) => o.status === "Pendiente" || o.status === "En Proceso").length;
+  const lowStockCount = (state.inventory || []).filter((i) => Number(i.stock) <= Number(i.minStock)).length;
+  const freqCustCount = (state.customers || []).filter((c) => getCustomerSegment(c).label === "Frecuente").length;
+  const maintCostTotal = (state.machines || []).reduce((s, m) => s + (Number(m.maintenanceCost) || 0), 0);
+
+  const summarySheet = [
+    ["Indicador Bazar Copi Art", "Valor Actual", "Fecha Corte"],
+    ["Ventas Totales Registradas (₡)", totalRevenue, formatDateTime(new Date().toISOString())],
+    ["Pedidos Totales", (state.orders || []).length, ""],
+    ["Pedidos Entregados", deliveredCount, ""],
+    ["Pedidos Pendientes / En Proceso", pendingCount, ""],
+    ["Clientes Registrados", (state.customers || []).length, ""],
+    ["Clientes Frecuentes (5+ pedidos)", freqCustCount, ""],
+    ["Artículos en Inventario", (state.inventory || []).length, ""],
+    ["Artículos con Stock Bajo", lowStockCount, ""],
+    ["Máquinas Registradas", (state.machines || []).length, ""],
+    ["Gasto Acumulado Mantenimiento Máquinas (₡)", maintCostTotal, ""],
+  ];
+
   return [
     { name: "Ventas_CRM", rows: ordersSheet },
-    { name: "Inventario_Stock", rows: invSheet },
     { name: "Clientes_CRM", rows: custSheet },
+    { name: "Inventario_Stock", rows: invSheet },
     { name: "Maquinas_Equipos", rows: machSheet },
+    { name: "Resumen_KPI", rows: summarySheet },
   ];
 }
 
