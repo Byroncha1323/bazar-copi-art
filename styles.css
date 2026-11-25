@@ -229,7 +229,7 @@ ul {
 .main-nav {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 .nav-link {
@@ -1237,6 +1237,89 @@ ul {
   text-align: center;
 }
 
+.inline-map-link {
+  color: var(--brand-plum);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.inline-map-link:hover {
+  color: var(--accent-gold-dark);
+}
+
+/* ================= UBICACIÓN Y MAPA ================= */
+.location-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 28px;
+  align-items: stretch;
+}
+
+.location-details-card,
+.location-map-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.location-details-card {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.location-details-card h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.6rem;
+  color: var(--brand-plum);
+  margin-bottom: 10px;
+}
+
+.location-address-main {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 12px;
+}
+
+.location-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.94rem;
+  color: var(--text-muted);
+}
+
+.location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.copy-address-feedback {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--whatsapp-dark);
+  min-height: 20px;
+}
+
+.location-map-card {
+  overflow: hidden;
+  min-height: 340px;
+  display: flex;
+}
+
+.location-map-frame {
+  width: 100%;
+  min-height: 340px;
+  border: 0;
+  display: block;
+}
+
 /* ================= FOOTER ================= */
 .site-footer {
   background-color: var(--brand-plum);
@@ -1502,7 +1585,8 @@ ul {
 @media (max-width: 980px) {
   .hero-grid,
   .chatbot-wrapper,
-  .contact-grid {
+  .contact-grid,
+  .location-grid {
     grid-template-columns: 1fr;
   }
 

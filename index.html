@@ -33,6 +33,7 @@
         <a href="#calidad" class="nav-link">Calidad</a>
         <a href="#preguntas" class="nav-link">Preguntas</a>
         <a href="#contacto" class="nav-link">Contacto</a>
+        <a href="#ubicacion" class="nav-link">Ubicación</a>
         <button type="button" class="btn btn-outline btn-sm nav-a11y-btn" id="a11yFontToggle" aria-pressed="false" title="Aumentar o reducir tamaño de letra">
           Aa+
         </button>
@@ -453,6 +454,9 @@
               <button type="button" class="faq-chip" data-faq="impresiones">
                 🖨️ ¿Cuánto cuestan las impresiones y copias?
               </button>
+              <button type="button" class="faq-chip" data-faq="ubicacion">
+                📍 ¿Dónde están ubicados?
+              </button>
               <button type="button" class="faq-chip" data-faq="encargo">
                 📦 ¿Cómo hago un pedido por encargo?
               </button>
@@ -544,7 +548,7 @@
 
             <div class="info-block">
               <h3>Modalidad y Pagos</h3>
-              <p><strong>Ubicación:</strong> Atención presencial y pedidos por encargo vía WhatsApp.</p>
+              <p><strong>Ubicación:</strong> Asturias, San Juan, San José, Costa Rica (<a href="#ubicacion" class="inline-map-link">ver mapa y cómo llegar</a>).</p>
               <p><strong>Métodos de pago:</strong> SINPE Móvil y Efectivo.</p>
             </div>
 
@@ -606,6 +610,59 @@
         </div>
       </div>
     </section>
+
+    <!-- ================= UBICACIÓN Y CÓMO LLEGAR ================= -->
+    <section class="section" id="ubicacion">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Dónde Estamos</span>
+          <h2>Nuestra Ubicación</h2>
+          <p>Visítanos presencialmente o pasa a retirar tus encargos en <strong>Asturias, San Juan, San José</strong>.</p>
+        </div>
+
+        <div class="location-grid">
+          <div class="location-details-card">
+            <div>
+              <h3>Bazar Copi Art · Tienda Física</h3>
+              <p class="location-address-main">📍 Asturias, San Juan, San José, Costa Rica</p>
+              <div class="location-list">
+                <p><strong>🕒 Horario para retiros:</strong> Lunes a Viernes de 6:30 a.m. a 4:30 p.m. · Sábados de 9:00 a.m. a 1:00 p.m.</p>
+                <p><strong>🚶 Retiro sin filas:</strong> Envía tus documentos o pedido por WhatsApp (<a href="https://wa.me/50664760290" target="_blank" rel="noopener noreferrer" class="inline-map-link">+506 6476-0290</a>) y pasa cuando te avisemos que está listo.</p>
+                <p><strong>💳 Pagos en tienda:</strong> SINPE Móvil y Efectivo.</p>
+              </div>
+            </div>
+
+            <div>
+              <div class="location-actions">
+                <a
+                  href="https://www.google.com/maps/place/San+Jos%C3%A9,+San+Juan,+Asturias/@9.9683717,-84.0588554,16.91z/data=!4m6!3m5!1s0x8fa0e4f67613bc4b:0xefb8e1292a5672b9!8m2!3d9.9671857!4d-84.0610105!16s%2Fg%2F1th82_z6?hl=es&entry=ttu&g_ep=EgoyMDI2MTEyMi4wIKXMDSoASAFQAw%3D%3D"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-primary"
+                >
+                  🗺️ Abrir en Google Maps
+                </a>
+                <button type="button" class="btn btn-outline" id="copyAddressBtn">
+                  📋 Copiar dirección
+                </button>
+              </div>
+              <p class="copy-address-feedback" id="copyAddressFeedback" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="location-map-card">
+            <iframe
+              class="location-map-frame"
+              title="Mapa de ubicación de Bazar Copi Art en Asturias, San Juan, San José"
+              src="https://maps.google.com/maps?q=9.9671857,-84.0610105&hl=es&z=16&output=embed"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- ================= FOOTER ================= -->
@@ -615,7 +672,7 @@
         <img src="assets/logo-copiart.jpg" alt="Logo Bazar Copi Art" class="footer-logo" />
         <div>
           <strong>Bazar Copi Art</strong>
-          <p>Cercanía, inmediatez, calidad y gran variedad en un mismo lugar.</p>
+          <p>Asturias, San Juan, San José · Cercanía, inmediatez, calidad y gran variedad.</p>
         </div>
       </div>
 
@@ -624,6 +681,7 @@
         <a href="#servicios">Precios</a>
         <a href="#calidad">Calidad</a>
         <a href="#contacto">Contacto</a>
+        <a href="#ubicacion">Ubicación</a>
         <a href="admin.html">Entrar a Mi Negocio</a>
         <button type="button" class="footer-legal-btn" id="openTermsBtn">Términos y Condiciones</button>
         <button type="button" class="footer-legal-btn" id="openCookiesBtn">Privacidad y Cookies</button>
@@ -657,7 +715,7 @@
           <h4>1. Términos y Condiciones de Pedidos</h4>
           <ul>
             <li><strong>Precios en colones (₡):</strong> Los precios mostrados en la página aplican para trabajos estándar. Los trabajos personalizados (tarjetas, facturas, papelería personalizada o tamaños especiales de emplasticado) se confirman en precio final y tiempo de entrega por WhatsApp (<strong>+506 6476-0290</strong>) antes de prepararse.</li>
-            <li><strong>Pedidos por encargo y retiros:</strong> Los pedidos se preparan para retirar en el negocio dentro del horario de atención (Lunes a Viernes de 6:30 a.m. a 4:30 p.m., Sábados de 9:00 a.m. a 1:00 p.m.). Los domingos recibimos encargos para retirar el lunes.</li>
+            <li><strong>Pedidos por encargo y retiros:</strong> Los pedidos se preparan para retirar en el negocio (Asturias, San Juan, San José) dentro del horario de atención (Lunes a Viernes de 6:30 a.m. a 4:30 p.m., Sábados de 9:00 a.m. a 1:00 p.m.). Los domingos recibimos encargos para retirar el lunes.</li>
             <li><strong>Archivos para imprimir:</strong> Los documentos e imágenes que nos envíes se usan únicamente para realizar tu impresión o trabajo solicitado.</li>
             <li><strong>Formas de pago:</strong> Aceptamos <strong>SINPE Móvil</strong> y <strong>Efectivo</strong>.</li>
           </ul>

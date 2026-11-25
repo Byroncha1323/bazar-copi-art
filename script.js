@@ -294,7 +294,14 @@ document.addEventListener("DOMContentLoaded", () => {
     encargo: {
       question: "¿Cómo hago un pedido por encargo?",
       answer:
-        "¡Es muy fácil! Nos envías tus archivos o la lista de artículos que necesitas por WhatsApp desde tu casa u oficina. Nosotros preparamos todo y te avisamos para que <strong>solamente pases a retirar cuando esté listo</strong>, sin hacer filas.",
+        "¡Es muy fácil! Nos envías tus archivos o la lista de artículos que necesitas por WhatsApp desde tu casa u oficina. Nosotros preparamos todo y te avisamos para que <strong>solamente pases a retirar cuando esté listo</strong> en nuestro local en <strong>Asturias, San Juan, San José</strong>, sin hacer filas.",
+    },
+    ubicacion: {
+      question: "¿Dónde están ubicados?",
+      answer:
+        "Estamos ubicados en <strong>Asturias, San Juan, San José, Costa Rica</strong>.<br>" +
+        "• <strong>Horario de retiro:</strong> Lunes a Viernes 6:30 a.m. – 4:30 p.m. | Sábados 9:00 a.m. – 1:00 p.m.<br>" +
+        '• <a href="https://www.google.com/maps/place/San+Jos%C3%A9,+San+Juan,+Asturias/@9.9683717,-84.0588554,16.91z/data=!4m6!3m5!1s0x8fa0e4f67613bc4b:0xefb8e1292a5672b9!8m2!3d9.9671857!4d-84.0610105!16s%2Fg%2F1th82_z6?hl=es&entry=ttu&g_ep=EgoyMDI2MTEyMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer" class="inline-map-link"><strong>🗺️ Abrir ubicación exacta en Google Maps</strong></a>',
     },
     pagos: {
       question: "¿Qué métodos de pago aceptan?",
@@ -415,12 +422,21 @@ document.addEventListener("DOMContentLoaded", () => {
       return FAQ_DATA.negocios.answer;
     }
     if (
-      text.includes("encargo") ||
-      text.includes("pedido") ||
       text.includes("ubicacion") ||
       text.includes("ubicación") ||
+      text.includes("direccion") ||
+      text.includes("dirección") ||
       text.includes("donde") ||
       text.includes("dónde") ||
+      text.includes("mapa") ||
+      text.includes("llegar") ||
+      text.includes("asturias")
+    ) {
+      return FAQ_DATA.ubicacion.answer;
+    }
+    if (
+      text.includes("encargo") ||
+      text.includes("pedido") ||
       text.includes("retir")
     ) {
       return FAQ_DATA.encargo.answer;
@@ -967,6 +983,27 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && legalModal?.classList.contains("open")) {
       closeLegalModal();
+    }
+  });
+
+  const copyAddressBtn = document.getElementById("copyAddressBtn");
+  const copyAddressFeedback = document.getElementById("copyAddressFeedback");
+  const FULL_STORE_ADDRESS =
+    "Bazar Copi Art — Asturias, San Juan, San José, Costa Rica | Mapa: https://www.google.com/maps/place/San+Jos%C3%A9,+San+Juan,+Asturias/@9.9683717,-84.0588554,16.91z/data=!4m6!3m5!1s0x8fa0e4f67613bc4b:0xefb8e1292a5672b9!8m2!3d9.9671857!4d-84.0610105!16s%2Fg%2F1th82_z6?hl=es";
+
+  copyAddressBtn?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(FULL_STORE_ADDRESS);
+    } catch {
+      const tempInput = document.createElement("textarea");
+      tempInput.value = FULL_STORE_ADDRESS;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      tempInput.remove();
+    }
+    if (copyAddressFeedback) {
+      copyAddressFeedback.textContent = "✅ Dirección y enlace de Google Maps copiados.";
     }
   });
 });

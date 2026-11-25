@@ -69,6 +69,7 @@ function formatCatalogForAI(inventory = []) {
 
   return (
     `INFORMACIÓN OFICIAL DE BAZAR COPI ART (Costa Rica):\n` +
+    `- Ubicación física: Asturias, San Juan, San José, Costa Rica (Google Maps: https://www.google.com/maps/place/San+Jos%C3%A9,+San+Juan,+Asturias/@9.9683717,-84.0588554,16.91z/data=!4m6!3m5!1s0x8fa0e4f67613bc4b:0xefb8e1292a5672b9!8m2!3d9.9671857!4d-84.0610105!16s%2Fg%2F1th82_z6?hl=es).\n` +
     `- Horario: Lunes a Viernes 6:30 a.m. a 4:30 p.m. | Sábados 9:00 a.m. a 1:00 p.m. | Domingos cerrado para retiros físicos, pero recibimos pedidos por encargo vía WhatsApp para retirar el lunes.\n` +
     `- Métodos de pago: SINPE Móvil y Efectivo.\n` +
     `- Modalidad: Atención presencial y pedidos por encargo vía WhatsApp (el cliente envía archivos o pedido y retira sin hacer filas cuando está listo).\n` +
@@ -266,10 +267,25 @@ function detectFAQAnswer(rawText, inventory = []) {
     );
   }
 
-  if (norm.includes("donde") || norm.includes("ubicacion") || norm.includes("retir") || norm.includes("como pido") || norm.includes("encargo")) {
+  if (
+    norm.includes("ubicacion") ||
+    norm.includes("direccion") ||
+    norm.includes("donde") ||
+    norm.includes("mapa") ||
+    norm.includes("llegar") ||
+    norm.includes("asturias")
+  ) {
+    answers.push(
+      `📍 *Ubicación de Bazar Copi Art:*\n` +
+        `Asturias, San Juan, San José, Costa Rica.\n` +
+        `🗺️ Google Maps: https://www.google.com/maps/place/San+Jos%C3%A9,+San+Juan,+Asturias/@9.9683717,-84.0588554,16.91z/data=!4m6!3m5!1s0x8fa0e4f67613bc4b:0xefb8e1292a5672b9!8m2!3d9.9671857!4d-84.0610105!16s%2Fg%2F1th82_z6?hl=es`
+    );
+  }
+
+  if (norm.includes("retir") || norm.includes("como pido") || norm.includes("encargo")) {
     answers.push(
       `📦 *Pedidos por encargo:*\n` +
-        `Nos envías tus archivos o lo que necesitas por WhatsApp, nosotros lo preparamos y te avisamos para que *solamente pases a retirar cuando esté listo*, sin hacer filas.`
+        `Nos envías tus archivos o lo que necesitas por WhatsApp, nosotros lo preparamos y te avisamos para que *solamente pases a retirar cuando esté listo* en nuestro local en Asturias, San Juan, San José, sin hacer filas.`
     );
   }
 
