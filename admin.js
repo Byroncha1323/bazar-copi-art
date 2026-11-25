@@ -391,7 +391,8 @@ el("quickHelpBtn")?.addEventListener("click", () => {
         <div class="guide-step"><strong>5. Al cerrar el día:</strong> Pulsa <strong>📊 Cierre del Día</strong> en el Resumen; guarda una copia de seguridad y descarga tu Excel completo.</div>
       </div>
     `,
-    async () => closeModal()
+    async () => closeModal(),
+    { readOnly: true }
   );
 });
 
@@ -1059,7 +1060,7 @@ function exportFullExcelWorkbook() {
     }),
     `Bazar-Copi-Art-CRM-${dateStr}.xlsx`
   );
-  showToast("Libro Excel (.xlsx) descargado con 4 hojas.");
+  showToast("Libro Excel (.xlsx) descargado con 5 hojas.");
 }
 
 el("exportXlsxBtn")?.addEventListener("click", exportFullExcelWorkbook);
@@ -1123,17 +1124,18 @@ el("importInventoryFile")?.addEventListener("change", (e) => {
 });
 
 // ================= MODALES CRUD =================
-function openModal(title, fieldsHTML, onSubmit) {
+function openModal(title, fieldsHTML, onSubmit, options = {}) {
   el("modalTitle").textContent = title;
   const form = el("modalForm");
-  form.innerHTML =
-    fieldsHTML +
-    `
-      <div class="modal-actions">
+  const footerHTML = options.readOnly
+    ? `<div class="modal-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="modalCancelBtn">¡Entendido!</button>
+      </div>`
+    : `<div class="modal-actions">
         <button type="button" class="btn btn-outline btn-sm" id="modalCancelBtn">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-sm">Guardar Cambios</button>
-      </div>
-    `;
+      </div>`;
+  form.innerHTML = fieldsHTML + footerHTML;
   modalSubmitHandler = onSubmit;
   el("modalCancelBtn")?.addEventListener("click", closeModal);
   el("editorModal").classList.add("open");
